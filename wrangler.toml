@@ -14,9 +14,14 @@ binding = "DB"
 database_name = "demuri"
 database_id = "6bfd4eba-e36b-43ae-91d8-3ecb4b90814a"
 
-# GALLERY Durable Object — typed in src/app.d.ts, binding declared in Phase 3
-# once the DO class is implemented. Adding the binding before the class exists
-# would prevent wrangler dev from booting.
-# [[durable_objects.bindings]]
-# name = "GALLERY"
-# class_name = "Gallery"
+# GALLERY Durable Object — the single live-gallery WebSocket hub (T3.1).
+# Class implemented in src/lib/server/GalleryRoom.ts, typed in src/app.d.ts.
+[[durable_objects.bindings]]
+name = "GALLERY"
+class_name = "GalleryRoom"
+
+# Hibernatable WebSocket DOs require the SQLite-backed storage classes,
+# declared via a new_sqlite_classes migration.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GalleryRoom"]
