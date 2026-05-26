@@ -5,6 +5,9 @@ import {
 	toPhotoResponse,
 	insertPhoto,
 	listPhotos,
+	getPhotoById,
+	setPhotoHidden,
+	deletePhotoRow,
 	MAX_NAME_LENGTH,
 	MAX_LIMIT,
 	DEFAULT_LIMIT
@@ -198,5 +201,79 @@ describe('listPhotos', () => {
 		const { db } = makeD1(rows);
 		const result = await listPhotos(db, BASE, null, DEFAULT_LIMIT);
 		expect(result.photos[0].url).toBe(`${BASE}/${rows[0].r2_key}`);
+	});
+});
+
+// ── Moderation helpers ────────────────────────────────────────────────────────
+
+function makeD1Moderation(changes: number, firstRow: Photo | null = null) {
+	const run = vi.fn().mockResolvedValue({ success: true, meta: { changes } });
+	const first = vi.fn().mockResolvedValue(firstRow);
+	const boundStmt = { run, first };
+	const bind = vi.fn().mockReturnValue(boundStmt);
+	const stmt = { bind };
+	const prepare = vi.fn().mockReturnValue(stmt);
+	const db = { prepare } as unknown as D1Database;
+	return { db, stmt, run, first };
+}
+
+describe('getPhotoById', () => {
+	it('returns the photo row when found', async () => {
+		const row = makePhotoRow(1);
+		const { db } = makeD1Moderation(0, row);
+		expect(await getPhotoById(db, 'id-1')).toEqual(row);
+	});
+
+	it('returns null when no row matches', async () => {
+		const { db } = makeD1Moderation(0, null);
+		expect(await getPhotoById(db, 'missing')).toBeNull();
+	});
+
+	it('binds the id to the SELECT statement', async () => {
+		const { db, stmt } = makeD1Moderation(0, null);
+		await getPhotoById(db, 'photo-xyz');
+		expect(stmt.bind).toHaveBeenCalledWith('photo-xyz');
+	});
+});
+
+describe('setPhotoHidden', () => {
+	it('returns true when the row was updated', async () => {
+		const { db } = makeD1Moderation(1);
+		expect(await setPhotoHidden(db, 'id-1', true)).toBe(true);
+	});
+
+	it('returns false when no row matched (photo not found)', async () => {
+		const { db } = makeD1Moderation(0);
+		expect(await setPhotoHidden(db, 'missing', true)).toBe(false);
+	});
+
+	it('binds 1 when hidden is true', async () => {
+		const { db, stmt } = makeD1Moderation(1);
+		await setPhotoHidden(db, 'id-1', true);
+		expect(stmt.bind).toHaveBeenCalledWith(1, 'id-1');
+	});
+
+	it('binds 0 when hidden is false', async () => {
+		const { db, stmt } = makeD1Moderation(1);
+		await setPhotoHidden(db, 'id-1', false);
+		expect(stmt.bind).toHaveBeenCalledWith(0, 'id-1');
+	});
+});
+
+describe('deletePhotoRow', () => {
+	it('returns true when a row was deleted', async () => {
+		const { db } = makeD1Moderation(1);
+		expect(await deletePhotoRow(db, 'id-1')).toBe(true);
+	});
+
+	it('returns false when no row matched (photo not found)', async () => {
+		const { db } = makeD1Moderation(0);
+		expect(await deletePhotoRow(db, 'missing')).toBe(false);
+	});
+
+	it('binds the photo id to the DELETE statement', async () => {
+		const { db, stmt } = makeD1Moderation(1);
+		await deletePhotoRow(db, 'photo-123');
+		expect(stmt.bind).toHaveBeenCalledWith('photo-123');
 	});
 });
