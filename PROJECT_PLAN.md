@@ -108,7 +108,7 @@ What "done" means for the whole project:
   - **Verify**: `pnpm install && pnpm build`
 
 #### T1.2: Create R2 bucket with public access
-- [ ] **Status**: TODO
+- [x] **Status**: DONE
 - **Complexity**: Medium
 - **Estimated**: 2 hours
 - **Dependencies**: T1.1
