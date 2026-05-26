@@ -1,2 +1,146 @@
-<h1>demuri</h1>
-<p>QR-accessed event photo wall. Scaffold up and running.</p>
+<script lang="ts">
+	import Camera from '$lib/components/Camera.svelte';
+
+	let name = $state('');
+	let previewUrl: string | null = $state(null);
+
+	function handleCapture(blob: Blob) {
+		if (previewUrl) URL.revokeObjectURL(previewUrl);
+		previewUrl = URL.createObjectURL(blob);
+		// TODO T2.2: upload blob + name to R2
+	}
+</script>
+
+<main>
+	<header>
+		<h1>demuri</h1>
+		<p class="subtitle">Point your camera and share the moment.</p>
+	</header>
+
+	<section class="name-section">
+		<label for="name-input">
+			Your name <span class="optional">(optional)</span>
+		</label>
+		<input
+			id="name-input"
+			type="text"
+			bind:value={name}
+			placeholder="e.g. Alex"
+			maxlength="50"
+			autocomplete="off"
+		/>
+	</section>
+
+	<section class="camera-section">
+		<Camera oncapture={handleCapture} />
+	</section>
+
+	{#if previewUrl}
+		<section class="preview-section">
+			<h2>Last capture</h2>
+			<img src={previewUrl} alt="Last capture preview" class="preview-img" />
+			{#if name}
+				<p class="preview-name">by {name}</p>
+			{/if}
+		</section>
+	{/if}
+</main>
+
+<style>
+	:global(body) {
+		margin: 0;
+		background: #0a0a0a;
+		color: #e0e0e0;
+		font-family:
+			system-ui,
+			-apple-system,
+			sans-serif;
+		min-height: 100dvh;
+	}
+
+	main {
+		max-width: 520px;
+		margin: 0 auto;
+		padding: 1.5rem 1rem 3rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	header {
+		text-align: center;
+	}
+
+	h1 {
+		margin: 0 0 0.25rem;
+		font-size: 2rem;
+		font-weight: 800;
+		color: #39ff14;
+		letter-spacing: -0.02em;
+	}
+
+	.subtitle {
+		margin: 0;
+		color: #666;
+		font-size: 0.9rem;
+	}
+
+	.name-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	label {
+		font-size: 0.85rem;
+		color: #aaa;
+	}
+
+	.optional {
+		color: #555;
+	}
+
+	input[type='text'] {
+		width: 100%;
+		padding: 0.65rem 0.75rem;
+		background: #111;
+		border: 1px solid #2a2a2a;
+		border-radius: 8px;
+		color: #e0e0e0;
+		font-size: 1rem;
+		outline: none;
+		box-sizing: border-box;
+		transition: border-color 0.15s;
+	}
+
+	input[type='text']:focus {
+		border-color: #39ff14;
+	}
+
+	.preview-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	h2 {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: #888;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.preview-img {
+		width: 100%;
+		border-radius: 10px;
+		display: block;
+	}
+
+	.preview-name {
+		margin: 0;
+		font-size: 0.85rem;
+		color: #555;
+	}
+</style>
