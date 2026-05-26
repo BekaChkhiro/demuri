@@ -193,19 +193,34 @@
 			</button>
 		{/if}
 
-		<img
-			src={lightbox.url}
-			alt={lightbox.name ? `${lightbox.name}-ის გაზიარებული ფოტო` : 'ღონისძიების ფოტო'}
-			class="lightbox-img"
-		/>
+		<div class="lightbox-stage">
+			<img
+				src={lightbox.url}
+				alt={lightbox.name ? `${lightbox.name}-ის გაზიარებული ფოტო` : 'ღონისძიების ფოტო'}
+				class="lightbox-img"
+			/>
+			<div class="lightbox-actions" role="presentation" onclick={(e) => e.stopPropagation()}>
+				<button type="button" class="icon-btn" onclick={downloadPhoto} aria-label="გადმოწერა">
+					<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<path d="M12 3v12" />
+						<path d="m7 10 5 5 5-5" />
+						<path d="M5 21h14" />
+					</svg>
+				</button>
+				<button type="button" class="icon-btn" onclick={sharePhoto} aria-label="გაზიარება">
+					<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<circle cx="18" cy="5" r="3" />
+						<circle cx="6" cy="12" r="3" />
+						<circle cx="18" cy="19" r="3" />
+						<path d="m8.6 13.5 6.8 3.9" />
+						<path d="m15.4 6.6-6.8 3.9" />
+					</svg>
+				</button>
+			</div>
+		</div>
 		{#if lightbox.name}
 			<p class="lightbox-caption">{lightbox.name}</p>
 		{/if}
-
-		<div class="lightbox-actions" role="presentation" onclick={(e) => e.stopPropagation()}>
-			<button type="button" class="action-btn" onclick={downloadPhoto}>⬇ გადმოწერა</button>
-			<button type="button" class="action-btn" onclick={sharePhoto}>↗ გაზიარება</button>
-		</div>
 
 		<!-- Thumbnail strip: stop propagation so picking another photo doesn't
 		     close the lightbox (the backdrop click handler does that). -->
@@ -319,26 +334,43 @@
 		text-align: center;
 	}
 
+	.lightbox-stage {
+		position: relative;
+		width: fit-content;
+		max-width: 100%;
+		line-height: 0;
+	}
+
+	/* Action icons sit on the bottom-left corner of the photo itself. */
 	.lightbox-actions {
+		position: absolute;
+		left: 0.75rem;
+		bottom: 0.75rem;
 		display: flex;
-		gap: 0.6rem;
+		gap: 0.5rem;
 	}
 
-	.action-btn {
-		padding: 0.55rem 1.2rem;
-		background: var(--accent);
-		color: #000;
-		border: none;
-		border-radius: var(--radius-md);
-		font-size: 0.9rem;
-		font-weight: 700;
+	.icon-btn {
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		background: rgba(0, 0, 0, 0.5);
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		backdrop-filter: blur(6px);
 		cursor: pointer;
-		box-shadow: 0 0 14px var(--accent-glow);
-		transition: opacity 0.15s;
+		transition: background 0.15s, transform 0.1s;
 	}
 
-	.action-btn:hover {
-		opacity: 0.85;
+	.icon-btn:hover {
+		background: rgba(0, 0, 0, 0.7);
+	}
+
+	.icon-btn:active {
+		transform: scale(0.92);
 	}
 
 	.lightbox-strip {

@@ -42,7 +42,7 @@ function loadBlob(blob: Blob): Promise<HTMLImageElement> {
  * areas. Best-effort: any failure returns the original blob untouched so a
  * watermark hiccup never blocks the upload.
  */
-export async function watermark(blob: Blob, quality = 0.82): Promise<Blob> {
+export async function watermark(blob: Blob, quality = 0.92): Promise<Blob> {
 	let photo: HTMLImageElement;
 	let logo: HTMLImageElement;
 	try {
