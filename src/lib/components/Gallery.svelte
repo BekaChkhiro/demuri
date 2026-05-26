@@ -33,16 +33,18 @@
 		else if (e.key === 'ArrowRight') showNext();
 	}
 
-	// Fetch the current photo as a File for download / native share. Returns
-	// null if the cross-origin fetch is blocked, so callers can fall back.
+	// Same-origin endpoint that streams the photo bytes (no R2 CORS issue).
+	const downloadUrl = (id: string) => `/api/download/${id}`;
+
+	// Fetch the current photo as a File for native share. Same-origin, so it is
+	// not subject to the r2.dev CORS limits. Returns null on failure.
 	async function fetchPhotoFile(): Promise<File | null> {
 		if (!lightbox) return null;
 		try {
-			const res = await fetch(lightbox.url, { mode: 'cors' });
+			const res = await fetch(downloadUrl(lightbox.id));
 			if (!res.ok) return null;
 			const blob = await res.blob();
-			const ext = blob.type.includes('png') ? 'png' : 'jpg';
-			return new File([blob], `bolozari-${lightbox.id}.${ext}`, {
+			return new File([blob], `bolozari-${lightbox.id}.jpg`, {
 				type: blob.type || 'image/jpeg'
 			});
 		} catch {
@@ -50,22 +52,16 @@
 		}
 	}
 
-	async function downloadPhoto() {
+	function downloadPhoto() {
 		if (!lightbox) return;
-		const file = await fetchPhotoFile();
-		if (!file) {
-			// Fallback: open in a new tab so the user can long-press / save.
-			window.open(lightbox.url, '_blank', 'noopener');
-			return;
-		}
-		const url = URL.createObjectURL(file);
+		// The endpoint sets Content-Disposition: attachment, so a plain
+		// same-origin link reliably triggers a download.
 		const a = document.createElement('a');
-		a.href = url;
-		a.download = file.name;
+		a.href = downloadUrl(lightbox.id);
+		a.download = `bolozari-${lightbox.id}.jpg`;
 		document.body.appendChild(a);
 		a.click();
 		a.remove();
-		URL.revokeObjectURL(url);
 	}
 
 	async function sharePhoto() {
