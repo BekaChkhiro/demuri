@@ -113,3 +113,33 @@ export async function listPhotos(
 
 	return { photos, nextBefore };
 }
+
+/** Fetch a single photo row by id. Returns null when not found. */
+export async function getPhotoById(db: D1Database, id: string): Promise<Photo | null> {
+	return db.prepare('SELECT * FROM photos WHERE id = ?').bind(id).first<Photo>() ?? null;
+}
+
+/**
+ * Set the hidden flag for a photo. Returns true when the row was updated,
+ * false when no row matched (not found).
+ */
+export async function setPhotoHidden(
+	db: D1Database,
+	id: string,
+	hidden: boolean
+): Promise<boolean> {
+	const result = await db
+		.prepare('UPDATE photos SET hidden = ? WHERE id = ?')
+		.bind(hidden ? 1 : 0, id)
+		.run();
+	return (result.meta.changes ?? 0) > 0;
+}
+
+/**
+ * Delete a photo row from D1. Returns true when a row was deleted,
+ * false when no row matched (not found).
+ */
+export async function deletePhotoRow(db: D1Database, id: string): Promise<boolean> {
+	const result = await db.prepare('DELETE FROM photos WHERE id = ?').bind(id).run();
+	return (result.meta.changes ?? 0) > 0;
+}
