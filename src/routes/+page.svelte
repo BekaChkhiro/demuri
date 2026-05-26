@@ -24,21 +24,7 @@
 		void prepareAndUpload(raw);
 	}
 
-	// A photo chosen from the device gallery. Same pipeline as a capture.
-	async function handleFileSelect(event: Event) {
-		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
-		input.value = ''; // allow re-picking the same file
-		if (!file) return;
-		if (!file.type.startsWith('image/')) {
-			uploadState = 'error';
-			uploadError = 'აირჩიე სურათის ფაილი.';
-			return;
-		}
-		await prepareAndUpload(file);
-	}
-
-	// Shared pipeline: downscale, stamp the logo, then auto-upload to R2.
+	// Downscale, stamp the logo, then auto-upload to R2.
 	async function prepareAndUpload(raw: Blob) {
 		const compressed = await compressImage(raw);
 		const stamped = await watermark(compressed);
@@ -94,10 +80,6 @@
 
 	<section class="camera-section">
 		<Camera oncapture={handleCapture} />
-		<label class="pick-btn">
-			გალერიიდან არჩევა
-			<input type="file" accept="image/*" onchange={handleFileSelect} hidden />
-		</label>
 	</section>
 
 	{#if uploadState !== 'idle'}
@@ -176,29 +158,6 @@
 
 	input[type='text']:focus {
 		border-color: var(--accent);
-	}
-
-	.camera-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.pick-btn {
-		align-self: center;
-		padding: 0.55rem 1.4rem;
-		background: transparent;
-		color: var(--accent);
-		border: 1.5px solid var(--accent);
-		border-radius: var(--radius-md);
-		font-size: 0.9rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: opacity 0.15s;
-	}
-
-	.pick-btn:hover {
-		opacity: 0.85;
 	}
 
 	.status-section {

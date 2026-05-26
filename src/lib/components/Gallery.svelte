@@ -69,6 +69,23 @@
 		{#if lightbox.name}
 			<p class="lightbox-caption">{lightbox.name}</p>
 		{/if}
+
+		<!-- Thumbnail strip: stop propagation so picking another photo doesn't
+		     close the lightbox (the backdrop click handler does that). -->
+		<div class="lightbox-strip" role="presentation" onclick={(e) => e.stopPropagation()}>
+			{#each $store.photos as p (p.id)}
+				<button
+					type="button"
+					class="strip-thumb"
+					class:active={p.id === lightbox.id}
+					onclick={() => (lightbox = p)}
+					aria-label={p.name ? `${p.name}-ის ფოტო` : 'ფოტო'}
+				>
+					<img src={p.url} alt="" loading="lazy" />
+				</button>
+			{/each}
+		</div>
+
 		<button type="button" class="lightbox-close" aria-label="დახურვა">✕</button>
 	</div>
 {/if}
@@ -152,7 +169,7 @@
 
 	.lightbox-img {
 		max-width: 100%;
-		max-height: 85vh;
+		max-height: 68vh;
 		object-fit: contain;
 		border-radius: var(--radius-md);
 	}
@@ -162,6 +179,45 @@
 		color: #fff;
 		font-size: 0.95rem;
 		text-align: center;
+	}
+
+	.lightbox-strip {
+		display: flex;
+		gap: 0.5rem;
+		max-width: 100%;
+		overflow-x: auto;
+		padding: 0.25rem;
+		scrollbar-width: thin;
+	}
+
+	.strip-thumb {
+		flex: 0 0 auto;
+		width: 64px;
+		height: 64px;
+		padding: 0;
+		border: 2px solid transparent;
+		border-radius: var(--radius-sm);
+		overflow: hidden;
+		background: none;
+		cursor: pointer;
+		opacity: 0.55;
+		transition: opacity 0.15s, border-color 0.15s;
+	}
+
+	.strip-thumb:hover {
+		opacity: 0.85;
+	}
+
+	.strip-thumb.active {
+		opacity: 1;
+		border-color: var(--accent);
+	}
+
+	.strip-thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
 	}
 
 	.lightbox-close {
