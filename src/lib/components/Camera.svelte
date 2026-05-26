@@ -3,6 +3,7 @@
 	import { startStream, stopStream, captureFrame, CameraError } from '$lib/camera.js';
 	import type { FacingMode } from '$lib/camera.js';
 	import { compressImage } from '$lib/compress.js';
+	import { watermark } from '$lib/watermark.js';
 
 	let { oncapture }: { oncapture?: (blob: Blob) => void } = $props();
 
@@ -44,7 +45,8 @@
 		capturing = true;
 		try {
 			const raw = await captureFrame(videoEl);
-			const blob = await compressImage(raw);
+			const compressed = await compressImage(raw);
+			const blob = await watermark(compressed);
 			oncapture?.(blob);
 		} catch {
 			captureError = 'ფოტოს გადაღება ვერ მოხერხდა. სცადე თავიდან.';
