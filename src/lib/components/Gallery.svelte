@@ -54,6 +54,7 @@
 	}
 
 	.tile {
+		position: relative;
 		break-inside: avoid;
 		margin: 0 0 0.75rem;
 		border-radius: var(--radius-lg);
@@ -68,10 +69,18 @@
 		display: block;
 	}
 
+	/* Caption overlays the bottom of the photo so a captioned tile is the same
+	   height as an uncaptioned one — the image alone defines the tile height. */
 	figcaption {
-		padding: 0.4rem 0.6rem;
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		padding: 0.75rem 0.6rem 0.4rem;
 		font-size: 0.8rem;
-		color: var(--text-muted);
+		color: #fff;
+		background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+		pointer-events: none;
 	}
 
 	.placeholder {
