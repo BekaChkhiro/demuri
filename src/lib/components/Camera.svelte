@@ -2,6 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { startStream, stopStream, captureFrame, CameraError } from '$lib/camera.js';
 	import type { FacingMode } from '$lib/camera.js';
+	import { compressImage } from '$lib/compress.js';
 
 	let { oncapture }: { oncapture?: (blob: Blob) => void } = $props();
 
@@ -42,7 +43,8 @@
 		captureError = null;
 		capturing = true;
 		try {
-			const blob = await captureFrame(videoEl);
+			const raw = await captureFrame(videoEl);
+			const blob = await compressImage(raw);
 			oncapture?.(blob);
 		} catch {
 			captureError = 'Failed to capture photo. Please try again.';
