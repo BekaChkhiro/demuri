@@ -26,24 +26,24 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	try {
 		form = await request.formData();
 	} catch {
-		throw error(400, 'Expected multipart/form-data');
+		throw error(400, 'მოსალოდნელი იყო multipart/form-data');
 	}
 
 	const photo = form.get('photo');
 	if (!(photo instanceof File)) {
-		throw error(400, 'Missing photo file');
+		throw error(400, 'ფოტოს ფაილი არ მოიძებნა');
 	}
 
 	if (!photo.type.startsWith('image/')) {
-		throw error(400, 'Uploaded file must be an image');
+		throw error(400, 'ატვირთული ფაილი უნდა იყოს სურათი');
 	}
 
 	if (photo.size === 0) {
-		throw error(400, 'Uploaded file is empty');
+		throw error(400, 'ატვირთული ფაილი ცარიელია');
 	}
 
 	if (photo.size > MAX_BYTES) {
-		throw error(400, 'Uploaded file exceeds the 8MB limit');
+		throw error(400, 'ატვირთული ფაილი აჭარბებს 8MB ლიმიტს');
 	}
 
 	const name = sanitizeName(form.get('name'));

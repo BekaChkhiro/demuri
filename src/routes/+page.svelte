@@ -35,12 +35,12 @@
 			const res = await fetch('/api/upload', { method: 'POST', body: form });
 			if (!res.ok) {
 				const detail = await res.text().catch(() => '');
-				throw new Error(detail || `Upload failed (${res.status})`);
+				throw new Error(detail || `ატვირთვა ვერ მოხერხდა (${res.status})`);
 			}
 			uploadState = 'done';
 		} catch (e) {
 			uploadState = 'error';
-			uploadError = e instanceof Error ? e.message : 'Upload failed. Please try again.';
+			uploadError = e instanceof Error ? e.message : 'ატვირთვა ვერ მოხერხდა. სცადე თავიდან.';
 		}
 	}
 
@@ -51,19 +51,19 @@
 
 <main>
 	<header>
-		<h1>demuri</h1>
-		<p class="subtitle">Point your camera and share the moment.</p>
+		<img src="/demuri-logo.png" alt="ბოლოზარი 2026" class="logo" />
+		<p class="subtitle">მიმართე კამერა და გააზიარე მომენტი.</p>
 	</header>
 
 	<section class="name-section">
 		<label for="name-input">
-			Your name <span class="optional">(optional)</span>
+			შენი სახელი <span class="optional">(არასავალდებულო)</span>
 		</label>
 		<input
 			id="name-input"
 			type="text"
 			bind:value={name}
-			placeholder="e.g. Alex"
+			placeholder="მაგ. ალექსი"
 			maxlength="50"
 			autocomplete="off"
 		/>
@@ -76,18 +76,18 @@
 	{#if uploadState !== 'idle'}
 		<section class="status-section">
 			{#if uploadState === 'uploading'}
-				<p class="upload-status uploading" aria-live="polite">Uploading…</p>
+				<p class="upload-status uploading" aria-live="polite">იტვირთება…</p>
 			{:else if uploadState === 'done'}
-				<p class="upload-status done" aria-live="polite">Shared to the wall ✓</p>
+				<p class="upload-status done" aria-live="polite">გაზიარდა კედელზე ✓</p>
 			{:else if uploadState === 'error'}
 				<p class="upload-status error" aria-live="assertive">{uploadError}</p>
-				<button class="btn-retry" onclick={retryUpload}>Retry upload</button>
+				<button class="btn-retry" onclick={retryUpload}>თავიდან ცდა</button>
 			{/if}
 		</section>
 	{/if}
 
 	<section class="gallery-section">
-		<h2>Live wall</h2>
+		<h2>ცოცხალი კედელი</h2>
 		<Gallery store={gallery} />
 	</section>
 </main>
@@ -106,12 +106,11 @@
 		text-align: center;
 	}
 
-	h1 {
-		margin: 0 0 0.25rem;
-		font-size: 2rem;
-		font-weight: 800;
-		color: var(--accent);
-		letter-spacing: -0.02em;
+	.logo {
+		display: block;
+		width: min(260px, 70%);
+		height: auto;
+		margin: 0 auto 0.5rem;
 	}
 
 	.subtitle {

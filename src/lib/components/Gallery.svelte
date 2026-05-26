@@ -22,7 +22,7 @@
 				>
 					<img
 						src={photo.url}
-						alt={photo.name ? `Photo shared by ${photo.name}` : 'Event photo'}
+						alt={photo.name ? `${photo.name}-ის გაზიარებული ფოტო` : 'ღონისძიების ფოტო'}
 						loading="lazy"
 						decoding="async"
 					/>
@@ -33,11 +33,11 @@
 			{/each}
 		</div>
 	{:else if $store.status === 'loading' || $store.status === 'idle'}
-		<p class="placeholder">Loading the wall…</p>
+		<p class="placeholder">კედელი იტვირთება…</p>
 	{:else if $store.status === 'error'}
-		<p class="placeholder error">Couldn't load the gallery. New photos will still appear live.</p>
+		<p class="placeholder error">გალერეა ვერ ჩაიტვირთა. ახალი ფოტოები მაინც გამოჩნდება ცოცხლად.</p>
 	{:else}
-		<p class="placeholder">No photos yet — be the first to share one!</p>
+		<p class="placeholder">ჯერ ფოტოები არ არის — გააზიარე პირველმა!</p>
 	{/if}
 </section>
 

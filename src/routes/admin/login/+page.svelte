@@ -7,15 +7,15 @@
 <main>
 	<header>
 		<h1>demuri</h1>
-		<p class="subtitle">Admin access</p>
+		<p class="subtitle">ადმინის წვდომა</p>
 	</header>
 
 	{#if hasError}
-		<p class="error" role="alert">Incorrect password. Please try again.</p>
+		<p class="error" role="alert">არასწორი პაროლი. სცადე თავიდან.</p>
 	{/if}
 
 	<form method="post" action="/admin/login">
-		<label for="password">Password</label>
+		<label for="password">პაროლი</label>
 		<input
 			id="password"
 			type="password"
@@ -23,7 +23,7 @@
 			autocomplete="current-password"
 			required
 		/>
-		<button type="submit">Sign in</button>
+		<button type="submit">შესვლა</button>
 	</form>
 </main>
 

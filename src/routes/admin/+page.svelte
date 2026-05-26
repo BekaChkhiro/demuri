@@ -65,26 +65,26 @@
 	<header>
 		<div class="header-row">
 			<div>
-				<h1>Admin</h1>
-				<p class="subtitle">demuri — moderation panel</p>
+				<h1>ადმინი</h1>
+				<p class="subtitle">demuri — მოდერაციის პანელი</p>
 			</div>
-			<a href="/admin/login" class="logout-link">Sign out</a>
+			<a href="/admin/login" class="logout-link">გასვლა</a>
 		</div>
 	</header>
 
 	<section>
-		<p class="count">{photos.length} photo{photos.length === 1 ? '' : 's'} total</p>
+		<p class="count">სულ {photos.length} ფოტო</p>
 
 		{#if photos.length === 0}
-			<p class="empty">No photos uploaded yet.</p>
+			<p class="empty">ჯერ ფოტოები არ ატვირთულა.</p>
 		{:else}
 			<div class="grid">
 				{#each photos as photo (photo.id)}
 					<div class="card" class:hidden-card={photo.hidden} class:pending={pendingIds.has(photo.id)}>
 						<div class="thumb-wrap">
-							<img src={photo.url} alt={photo.name ?? 'photo'} loading="lazy" class="thumb" />
+							<img src={photo.url} alt={photo.name ?? 'ფოტო'} loading="lazy" class="thumb" />
 							{#if photo.hidden}
-								<span class="hidden-badge">hidden</span>
+								<span class="hidden-badge">დამალული</span>
 							{/if}
 						</div>
 						<div class="card-body">
@@ -95,14 +95,14 @@
 									onclick={() => toggleHide(photo.id, !photo.hidden)}
 									disabled={pendingIds.has(photo.id)}
 								>
-									{photo.hidden ? 'Unhide' : 'Hide'}
+									{photo.hidden ? 'გამოჩენა' : 'დამალვა'}
 								</button>
 								<button
 									class="btn btn-danger"
 									onclick={() => (confirmDeleteId = photo.id)}
 									disabled={pendingIds.has(photo.id)}
 								>
-									Delete
+									წაშლა
 								</button>
 							</div>
 						</div>
@@ -118,28 +118,28 @@
 		class="overlay"
 		role="dialog"
 		aria-modal="true"
-		aria-label="Confirm deletion"
+		aria-label="წაშლის დადასტურება"
 		onclick={() => (confirmDeleteId = null)}
 		onkeydown={(e) => e.key === 'Escape' && (confirmDeleteId = null)}
 		tabindex="-1"
 	>
 		<div class="dialog" role="presentation" onclick={(e) => e.stopPropagation()}>
-			<h2>Delete photo?</h2>
+			<h2>წავშალოთ ფოტო?</h2>
 			<p>
 				{#if confirmPhoto?.name}
-					<strong>{confirmPhoto.name}</strong> will be
+					<strong>{confirmPhoto.name}</strong> სამუდამოდ წაიშლება.
 				{:else}
-					This photo will be
+					ეს ფოტო სამუდამოდ წაიშლება.
 				{/if}
-				permanently removed. This cannot be undone.
+				ამის დაბრუნება შეუძლებელია.
 			</p>
 			<div class="dialog-actions">
-				<button class="btn btn-secondary" onclick={() => (confirmDeleteId = null)}>Cancel</button>
+				<button class="btn btn-secondary" onclick={() => (confirmDeleteId = null)}>გაუქმება</button>
 				<button
 					class="btn btn-danger"
 					onclick={() => confirmDeleteId && confirmAndDelete(confirmDeleteId)}
 				>
-					Delete permanently
+					სამუდამოდ წაშლა
 				</button>
 			</div>
 		</div>

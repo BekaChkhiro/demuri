@@ -34,7 +34,7 @@
 		} catch (e) {
 			stream = null;
 			status = 'error';
-			startError = e instanceof CameraError ? e.message : 'Could not start the camera.';
+			startError = e instanceof CameraError ? e.message : 'კამერის გაშვება ვერ მოხერხდა.';
 		}
 	}
 
@@ -47,7 +47,7 @@
 			const blob = await compressImage(raw);
 			oncapture?.(blob);
 		} catch {
-			captureError = 'Failed to capture photo. Please try again.';
+			captureError = 'ფოტოს გადაღება ვერ მოხერხდა. სცადე თავიდან.';
 		} finally {
 			capturing = false;
 		}
@@ -62,13 +62,13 @@
 <div class="camera-wrap">
 	{#if status === 'idle'}
 		<div class="camera-placeholder">
-			<p class="hint">Tap to open the camera</p>
-			<button class="btn-primary" onclick={startCamera}>Open Camera</button>
+			<p class="hint">შეეხე კამერის გასახსნელად</p>
+			<button class="btn-primary" onclick={startCamera}>კამერის გახსნა</button>
 		</div>
 	{:else if status === 'error'}
 		<div class="camera-placeholder">
 			<p class="error-text">{startError}</p>
-			<button class="btn-secondary" onclick={startCamera}>Try Again</button>
+			<button class="btn-secondary" onclick={startCamera}>თავიდან ცდა</button>
 		</div>
 	{:else}
 		<div class="camera-view">
@@ -79,15 +79,15 @@
 					class="btn-capture"
 					onclick={handleCapture}
 					disabled={capturing}
-					aria-label="Capture photo"
+					aria-label="ფოტოს გადაღება"
 				>
 					{capturing ? '…' : '●'}
 				</button>
 				<button
 					class="btn-toggle"
 					onclick={toggleFacing}
-					aria-label="Switch camera"
-					title="Switch to {facingMode === 'environment' ? 'front' : 'rear'} camera"
+					aria-label="კამერის გადართვა"
+					title="გადართე {facingMode === 'environment' ? 'წინა' : 'უკანა'} კამერაზე"
 				>
 					⇄
 				</button>

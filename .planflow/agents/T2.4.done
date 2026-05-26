@@ -1,0 +1,1 @@
+{"taskId":"T2.4","status":"done","phase":"complete","prUrl":"https://github.com/BekaChkhiro/demuri/pull/4","summary":"GET /api/photos implemented and merged — cursor pagination, MAX_LIMIT=60, hidden filtering","branch":"task/T2.4-implement-get-apiphotos","lastUpdate":"2026-05-26T15:06:22Z","finishedAt":"2026-05-26T15:06:22Z"}

@@ -1,0 +1,1 @@
+{"taskId":"T3.2","status":"done","phase":"complete","prUrl":"https://github.com/BekaChkhiro/demuri/pull/7","summary":"upload handler broadcasts photo:new to GalleryRoom DO after each successful upload; PR #7 merged to master","branch":"task/T3.2-broadcast-new-photo-on-upload","lastUpdate":"2026-05-26T19:35:30Z","finishedAt":"2026-05-26T19:35:30Z"}
