@@ -20,6 +20,10 @@ export interface GalleryState {
 	status: GalleryStatus;
 	/** Last non-fatal error message (e.g. the initial seed failed), else null. */
 	error: string | null;
+	/** Cursor for the next older page, or null when the wall is fully loaded. */
+	nextBefore: number | null;
+	/** True while an older page is being fetched (for the scroll loader). */
+	loadingMore: boolean;
 }
 
 /** Shape of GET /api/photos — only the fields the client consumes. */
@@ -46,6 +50,8 @@ export interface GalleryStoreOptions {
 export interface GalleryStore extends Readable<GalleryState> {
 	/** Seed from the API then open the live socket. A no-op after the first call. */
 	start(): Promise<void>;
+	/** Fetch the next older page (cursor-based). No-op when fully loaded or busy. */
+	loadMore(): Promise<void>;
 	/** Close the socket and stop reconnecting. */
 	destroy(): void;
 }
@@ -152,7 +158,9 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 	const { subscribe, update, set } = writable<GalleryState>({
 		photos: [],
 		status: 'idle',
-		error: null
+		error: null,
+		nextBefore: null,
+		loadingMore: false
 	});
 
 	let socket: WebSocket | null = null;
@@ -160,6 +168,8 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 	let attempts = 0;
 	let destroyed = false;
 	let started = false;
+	let loadingMore = false;
+	let nextBefore: number | null = null;
 	let visibilityHandler: (() => void) | null = null;
 
 	function setStatus(status: GalleryStatus, error: string | null = null): void {
@@ -249,7 +259,8 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 			if (!res.ok) throw new Error(`Failed to load photos (${res.status})`);
 			const data = (await res.json()) as PhotoListResponse;
 			const photos = Array.isArray(data?.photos) ? data.photos : [];
-			set({ photos, status: 'loading', error: null });
+			nextBefore = data?.nextBefore ?? null;
+			set({ photos, status: 'loading', error: null, nextBefore, loadingMore: false });
 		} catch (e) {
 			// Non-fatal: keep going live so freshly uploaded photos still stream in.
 			setStatus('error', e instanceof Error ? e.message : 'Failed to load gallery');
@@ -265,6 +276,31 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 		}
 
 		openSocket();
+	}
+
+	async function loadMore(): Promise<void> {
+		if (destroyed || loadingMore || nextBefore === null) return;
+		loadingMore = true;
+		update((s) => ({ ...s, loadingMore: true }));
+		try {
+			const res = await fetchFn(`${photosUrl}?before=${nextBefore}`);
+			if (!res.ok) throw new Error(`Failed to load more (${res.status})`);
+			const data = (await res.json()) as PhotoListResponse;
+			const older = Array.isArray(data?.photos) ? data.photos : [];
+			nextBefore = data?.nextBefore ?? null;
+			update((s) => {
+				const merged = [...s.photos];
+				for (const p of older) {
+					if (!merged.some((x) => x.id === p.id)) merged.push(p);
+				}
+				return { ...s, photos: merged, nextBefore, loadingMore: false };
+			});
+		} catch {
+			// Non-fatal: leave the cursor in place so a later scroll can retry.
+			update((s) => ({ ...s, loadingMore: false }));
+		} finally {
+			loadingMore = false;
+		}
 	}
 
 	function destroy(): void {
@@ -291,5 +327,5 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 		}
 	}
 
-	return { subscribe, start, destroy };
+	return { subscribe, start, loadMore, destroy };
 }

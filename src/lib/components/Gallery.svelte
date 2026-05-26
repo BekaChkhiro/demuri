@@ -13,6 +13,21 @@
 	type GalleryPhoto = (typeof $store.photos)[number];
 	let lightbox: GalleryPhoto | null = $state(null);
 
+	// Infinite scroll: observe a sentinel below the grid and pull the next older
+	// page as it nears the viewport. loadMore() self-guards when fully loaded.
+	let sentinel: HTMLElement | undefined = $state();
+	$effect(() => {
+		if (!browser || !sentinel) return;
+		const obs = new IntersectionObserver(
+			(entries) => {
+				if (entries[0]?.isIntersecting) void store.loadMore();
+			},
+			{ rootMargin: '500px' }
+		);
+		obs.observe(sentinel);
+		return () => obs.disconnect();
+	});
+
 	const lightboxIndex = $derived(
 		lightbox ? $store.photos.findIndex((p) => p.id === lightbox!.id) : -1
 	);
@@ -141,8 +156,26 @@
 				</figure>
 			{/each}
 		</div>
+
+		<!-- Skeletons shown while the next older page streams in. -->
+		{#if $store.loadingMore}
+			<div class="masonry skeletons">
+				{#each Array(3) as _, i (i)}
+					<div class="skeleton-tile"></div>
+				{/each}
+			</div>
+		{/if}
+
+		<!-- Infinite-scroll trigger; observed in the script. -->
+		{#if $store.nextBefore !== null}
+			<div bind:this={sentinel} class="scroll-sentinel" aria-hidden="true"></div>
+		{/if}
 	{:else if $store.status === 'loading' || $store.status === 'idle'}
-		<p class="placeholder">კედელი იტვირთება…</p>
+		<div class="masonry skeletons">
+			{#each Array(9) as _, i (i)}
+				<div class="skeleton-tile"></div>
+			{/each}
+		</div>
 	{:else if $store.status === 'error'}
 		<p class="placeholder error">გალერეა ვერ ჩაიტვირთა. ახალი ფოტოები მაინც გამოჩნდება ცოცხლად.</p>
 	{:else}
@@ -300,6 +333,42 @@
 
 	.placeholder.error {
 		color: var(--error);
+	}
+
+	.skeletons {
+		margin-top: 0.75rem;
+	}
+
+	.skeletons:first-child {
+		margin-top: 0;
+	}
+
+	.skeleton-tile {
+		aspect-ratio: 4 / 5;
+		border-radius: var(--radius-lg);
+		background: linear-gradient(100deg, var(--surface) 30%, var(--border-subtle) 50%, var(--surface) 70%);
+		background-size: 200% 100%;
+		animation: shimmer 1.3s ease-in-out infinite;
+	}
+
+	@keyframes shimmer {
+		from {
+			background-position: 200% 0;
+		}
+		to {
+			background-position: -200% 0;
+		}
+	}
+
+	.scroll-sentinel {
+		height: 1px;
+		width: 100%;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.skeleton-tile {
+			animation: none;
+		}
 	}
 
 	.lightbox {
