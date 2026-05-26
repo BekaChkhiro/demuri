@@ -52,18 +52,18 @@
 <main>
 	<header>
 		<img src="/demuri-logo.png" alt="ბოლოზარი 2026" class="logo" />
-		<p class="subtitle">მიმართე კამერა და გააზიარე მომენტი.</p>
+		<p class="subtitle">გახსენი კამერა და გააზიარე მომენტი.</p>
 	</header>
 
 	<section class="name-section">
 		<label for="name-input">
-			შენი სახელი <span class="optional">(არასავალდებულო)</span>
+			სასურველი ტექსტი <span class="optional">(არასავალდებულო)</span>
 		</label>
 		<input
 			id="name-input"
 			type="text"
 			bind:value={name}
-			placeholder="მაგ. ალექსი"
+			placeholder="დატოვე შენი სურვილი..."
 			maxlength="50"
 			autocomplete="off"
 		/>
@@ -87,7 +87,7 @@
 	{/if}
 
 	<section class="gallery-section">
-		<h2>ცოცხალი კედელი</h2>
+		<h2>უახლესი მომენტები</h2>
 		<Gallery store={gallery} />
 	</section>
 </main>
