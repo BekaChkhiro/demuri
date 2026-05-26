@@ -118,7 +118,9 @@
 					onclick={handleCapture}
 					disabled={capturing}
 					aria-label="ფოტოს გადაღება"
-				></button>
+				>
+					<img src="/demuri-logo.png" alt="" class="btn-capture-logo" />
+				</button>
 				<span class="control-spacer"></span>
 			</div>
 		</div>
@@ -247,16 +249,28 @@
 		cursor: pointer;
 	}
 
-	/* Shutter button: neon-green disc inside a white ring. */
+	/* Shutter button: white disc with the logo centered, neon-green ring. */
 	.btn-capture {
 		width: 74px;
 		height: 74px;
 		border-radius: 50%;
-		background: var(--accent);
-		border: 4px solid rgba(255, 255, 255, 0.85);
+		background: #fff;
+		border: 4px solid var(--accent);
 		box-shadow: 0 0 18px var(--accent-glow), 0 0 0 2px rgba(0, 0, 0, 0.25);
 		cursor: pointer;
 		transition: transform 0.1s;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		padding: 0;
+	}
+
+	.btn-capture-logo {
+		width: 78%;
+		height: auto;
+		object-fit: contain;
+		pointer-events: none;
 	}
 
 	.btn-capture:active {
