@@ -6,6 +6,9 @@
 
 	let name = $state('');
 	let previewUrl: string | null = $state(null);
+	let lastBlob: Blob | null = $state(null);
+	let uploadState: 'idle' | 'uploading' | 'done' | 'error' = $state('idle');
+	let uploadError: string | null = $state(null);
 
 	const gallery = createGalleryStore();
 	onMount(() => {
@@ -18,7 +21,34 @@
 	function handleCapture(blob: Blob) {
 		if (previewUrl) URL.revokeObjectURL(previewUrl);
 		previewUrl = URL.createObjectURL(blob);
-		// TODO T2.2: upload blob + name to R2
+		lastBlob = blob;
+		void uploadPhoto(blob);
+	}
+
+	// Auto-upload the captured frame to R2 the moment it's taken.
+	async function uploadPhoto(blob: Blob) {
+		uploadState = 'uploading';
+		uploadError = null;
+		try {
+			const form = new FormData();
+			form.append('photo', blob, 'photo.jpg');
+			const trimmed = name.trim();
+			if (trimmed) form.append('name', trimmed);
+
+			const res = await fetch('/api/upload', { method: 'POST', body: form });
+			if (!res.ok) {
+				const detail = await res.text().catch(() => '');
+				throw new Error(detail || `Upload failed (${res.status})`);
+			}
+			uploadState = 'done';
+		} catch (e) {
+			uploadState = 'error';
+			uploadError = e instanceof Error ? e.message : 'Upload failed. Please try again.';
+		}
+	}
+
+	function retryUpload() {
+		if (lastBlob) void uploadPhoto(lastBlob);
 	}
 </script>
 
@@ -52,6 +82,14 @@
 			<img src={previewUrl} alt="Last capture preview" class="preview-img" />
 			{#if name}
 				<p class="preview-name">by {name}</p>
+			{/if}
+			{#if uploadState === 'uploading'}
+				<p class="upload-status uploading" aria-live="polite">Uploading…</p>
+			{:else if uploadState === 'done'}
+				<p class="upload-status done" aria-live="polite">Shared to the wall ✓</p>
+			{:else if uploadState === 'error'}
+				<p class="upload-status error" aria-live="assertive">{uploadError}</p>
+				<button class="btn-retry" onclick={retryUpload}>Retry upload</button>
 			{/if}
 		</section>
 	{/if}
@@ -147,6 +185,35 @@
 		margin: 0;
 		font-size: 0.85rem;
 		color: var(--text-dim);
+	}
+
+	.upload-status {
+		margin: 0;
+		font-size: 0.85rem;
+		font-weight: 600;
+	}
+
+	.upload-status.uploading {
+		color: var(--text-muted);
+	}
+
+	.upload-status.done {
+		color: var(--accent);
+	}
+
+	.upload-status.error {
+		color: var(--error);
+	}
+
+	.btn-retry {
+		align-self: flex-start;
+		padding: 0.45rem 1.1rem;
+		background: transparent;
+		color: var(--accent);
+		border: 1.5px solid var(--accent);
+		border-radius: var(--radius-md);
+		font-size: 0.85rem;
+		cursor: pointer;
 	}
 
 	.gallery-section {
