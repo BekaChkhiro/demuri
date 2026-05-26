@@ -24,3 +24,4 @@ vite.config.ts.timestamp-*
 
 # PlanFlow local index cache (keep project.json, ignore local state)
 .planflow/index-state.json
+.planflow/worktrees.json
