@@ -49,14 +49,8 @@
 	/* CSS-columns masonry: newest-first items prepend at the top-left and the
 	   rest flow down without re-laying-out the whole grid. */
 	.masonry {
-		column-count: 2;
+		column-count: 3;
 		column-gap: 0.75rem;
-	}
-
-	@media (min-width: 640px) {
-		.masonry {
-			column-count: 3;
-		}
 	}
 
 	.tile {

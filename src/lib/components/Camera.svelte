@@ -114,20 +114,14 @@
 		}
 	}
 
-	/* Full-bleed on mobile: break out of the page's 1rem horizontal padding */
+	/* On mobile the camera stays within the page's 1rem horizontal padding,
+	   aligning with the name input rather than bleeding to the screen edges. */
 	@media (max-width: 639px) {
-		.camera-wrap {
-			margin-inline: -1rem;
-			width: calc(100% + 2rem);
-		}
-
 		.camera-placeholder {
-			border-radius: 0;
 			min-height: min(56svh, 380px);
 		}
 
 		.camera-view {
-			border-radius: 0;
 			aspect-ratio: auto;
 			height: min(60svh, 420px);
 		}
