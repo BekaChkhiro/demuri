@@ -1,7 +1,22 @@
 name = "demuri"
 compatibility_date = "2024-11-01"
+# Required by SvelteKit's Cloudflare adapter (uses node:async_hooks et al.)
+compatibility_flags = ["nodejs_compat"]
 
 # R2 bucket for uploaded photo blobs (T1.2)
 [[r2_buckets]]
 binding = "PHOTOS_BUCKET"
 bucket_name = "demuri-photos"
+
+# D1 database for photo metadata (T1.3)
+[[d1_databases]]
+binding = "DB"
+database_name = "demuri"
+database_id = "6bfd4eba-e36b-43ae-91d8-3ecb4b90814a"
+
+# GALLERY Durable Object — typed in src/app.d.ts, binding declared in Phase 3
+# once the DO class is implemented. Adding the binding before the class exists
+# would prevent wrangler dev from booting.
+# [[durable_objects.bindings]]
+# name = "GALLERY"
+# class_name = "Gallery"
