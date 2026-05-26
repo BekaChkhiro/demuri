@@ -62,7 +62,7 @@
 <div class="camera-wrap">
 	{#if status === 'idle'}
 		<div class="camera-placeholder">
-			<p class="hint">შეეხე კამერის გასახსნელად</p>
+			<p class="hint">დააჭირე ღილაკს გასახსნელად</p>
 			<button class="btn-primary" onclick={startCamera}>კამერის გახსნა</button>
 		</div>
 	{:else if status === 'error'}
