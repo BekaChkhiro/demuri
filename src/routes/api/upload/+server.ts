@@ -1,6 +1,8 @@
 import { error, json } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { requireEnv } from '$lib/server/env';
+import { GALLERY_ROOM_NAME } from '$lib/server/gallery-room-name';
+import { BROADCAST_PATH } from '$lib/server/GalleryRoom';
 import { insertPhoto, publicUrl, sanitizeName, type PhotoResponse } from '$lib/server/photos';
 import type { RequestHandler } from './$types';
 
@@ -63,5 +65,18 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		name,
 		createdAt
 	};
+
+	// Notify live clients — broadcast failure must not fail the upload.
+	try {
+		const gallery = requireEnv(platform, 'GALLERY');
+		const stub = gallery.get(gallery.idFromName(GALLERY_ROOM_NAME));
+		await stub.fetch(`https://do${BROADCAST_PATH}`, {
+			method: 'POST',
+			body: JSON.stringify({ type: 'photo:new', photo: body })
+		} as never);
+	} catch {
+		// Best-effort: no connected clients or DO unavailable.
+	}
+
 	return json(body, { status: 201 });
 };
