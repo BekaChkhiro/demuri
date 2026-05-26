@@ -1,9 +1,14 @@
 <script lang="ts">
 	import { scale } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import { browser } from '$app/environment';
 	import type { GalleryStore } from '$lib/gallery';
 
 	let { store }: { store: GalleryStore } = $props();
+
+	const motionOk = browser && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const inParams = motionOk ? { duration: 400, start: 0.92, opacity: 0, easing: cubicOut } : { duration: 0 };
+	const outParams = motionOk ? { duration: 220, start: 0.92, opacity: 0, easing: cubicOut } : { duration: 0 };
 </script>
 
 <section class="gallery" aria-live="polite">
@@ -12,7 +17,8 @@
 			{#each $store.photos as photo (photo.id)}
 				<figure
 					class="tile"
-					in:scale={{ duration: 400, start: 0.92, opacity: 0, easing: cubicOut }}
+					in:scale={inParams}
+					out:scale={outParams}
 				>
 					<img
 						src={photo.url}
