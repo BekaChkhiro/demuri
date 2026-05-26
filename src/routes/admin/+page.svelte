@@ -147,17 +147,6 @@
 {/if}
 
 <style>
-	:global(body) {
-		margin: 0;
-		background: #0a0a0a;
-		color: #e0e0e0;
-		font-family:
-			system-ui,
-			-apple-system,
-			sans-serif;
-		min-height: 100dvh;
-	}
-
 	main {
 		max-width: 1100px;
 		margin: 0 auto;
@@ -168,7 +157,7 @@
 	}
 
 	header {
-		border-bottom: 1px solid #1a1a1a;
+		border-bottom: 1px solid var(--border);
 		padding-bottom: 1rem;
 	}
 
@@ -182,39 +171,39 @@
 		margin: 0 0 0.25rem;
 		font-size: 1.75rem;
 		font-weight: 800;
-		color: #39ff14;
+		color: var(--accent);
 		letter-spacing: -0.02em;
 	}
 
 	.subtitle {
 		margin: 0;
-		color: #666;
+		color: var(--text-dim);
 		font-size: 0.9rem;
 	}
 
 	.logout-link {
-		color: #666;
+		color: var(--text-dim);
 		font-size: 0.85rem;
 		text-decoration: none;
 		padding: 0.35rem 0.7rem;
-		border: 1px solid #2a2a2a;
-		border-radius: 6px;
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-sm);
 		transition: border-color 0.15s;
 	}
 
 	.logout-link:hover {
-		border-color: #555;
-		color: #aaa;
+		border-color: var(--text-dim);
+		color: var(--text-secondary);
 	}
 
 	.count {
 		margin: 0 0 1rem;
-		color: #555;
+		color: var(--text-dim);
 		font-size: 0.85rem;
 	}
 
 	.empty {
-		color: #555;
+		color: var(--text-dim);
 		font-size: 0.9rem;
 	}
 
@@ -225,9 +214,9 @@
 	}
 
 	.card {
-		background: #111;
-		border: 1px solid #1e1e1e;
-		border-radius: 10px;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
@@ -249,7 +238,7 @@
 		position: relative;
 		aspect-ratio: 1;
 		overflow: hidden;
-		background: #0d0d0d;
+		background: var(--bg);
 	}
 
 	.thumb {
@@ -264,7 +253,7 @@
 		top: 0.4rem;
 		right: 0.4rem;
 		background: #ff8c00cc;
-		color: #0a0a0a;
+		color: var(--bg);
 		font-size: 0.65rem;
 		font-weight: 700;
 		text-transform: uppercase;
@@ -283,7 +272,7 @@
 	.photo-name {
 		margin: 0;
 		font-size: 0.8rem;
-		color: #888;
+		color: var(--text-muted);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -298,7 +287,7 @@
 		flex: 1;
 		padding: 0.4rem 0.2rem;
 		border: none;
-		border-radius: 6px;
+		border-radius: var(--radius-sm);
 		font-size: 0.8rem;
 		font-weight: 600;
 		cursor: pointer;
@@ -311,25 +300,25 @@
 	}
 
 	.btn-secondary {
-		background: #1e1e1e;
-		color: #aaa;
-		border: 1px solid #2a2a2a;
+		background: var(--border);
+		color: var(--text-secondary);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.btn-secondary:hover:not(:disabled) {
-		background: #252525;
-		color: #e0e0e0;
+		background: var(--border-subtle);
+		color: var(--text);
 	}
 
 	.btn-danger {
-		background: #1a0000;
-		color: #ff6b6b;
-		border: 1px solid #440000;
+		background: var(--error-bg);
+		color: var(--error-bright);
+		border: 1px solid var(--error-border);
 	}
 
 	.btn-danger:hover:not(:disabled) {
 		background: #220000;
-		border-color: #660000;
+		border-color: var(--error-border-bright);
 	}
 
 	.overlay {
@@ -344,9 +333,9 @@
 	}
 
 	.dialog {
-		background: #111;
-		border: 1px solid #2a2a2a;
-		border-radius: 12px;
+		background: var(--surface);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-lg);
 		padding: 1.5rem;
 		max-width: 380px;
 		width: calc(100% - 2rem);
@@ -359,13 +348,13 @@
 		margin: 0;
 		font-size: 1.1rem;
 		font-weight: 700;
-		color: #e0e0e0;
+		color: var(--text);
 	}
 
 	.dialog p {
 		margin: 0;
 		font-size: 0.9rem;
-		color: #888;
+		color: var(--text-muted);
 		line-height: 1.5;
 	}
 
