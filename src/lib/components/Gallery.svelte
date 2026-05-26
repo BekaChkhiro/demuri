@@ -12,7 +12,40 @@
 
 	type GalleryPhoto = (typeof $store.photos)[number];
 	let lightbox: GalleryPhoto | null = $state(null);
+
+	const lightboxIndex = $derived(
+		lightbox ? $store.photos.findIndex((p) => p.id === lightbox!.id) : -1
+	);
+	const hasPrev = $derived(lightboxIndex > 0);
+	const hasNext = $derived(lightboxIndex >= 0 && lightboxIndex < $store.photos.length - 1);
+
+	function showPrev() {
+		if (hasPrev) lightbox = $store.photos[lightboxIndex - 1];
+	}
+	function showNext() {
+		if (hasNext) lightbox = $store.photos[lightboxIndex + 1];
+	}
+
+	function onLightboxKey(e: KeyboardEvent) {
+		if (!lightbox) return;
+		if (e.key === 'Escape') lightbox = null;
+		else if (e.key === 'ArrowLeft') showPrev();
+		else if (e.key === 'ArrowRight') showNext();
+	}
+
+	// Lock page scroll while the full-screen viewer is open.
+	$effect(() => {
+		if (!browser) return;
+		if (lightbox) {
+			document.body.style.overflow = 'hidden';
+			return () => {
+				document.body.style.overflow = '';
+			};
+		}
+	});
 </script>
+
+<svelte:window onkeydown={onLightboxKey} />
 
 <section class="gallery" aria-live="polite">
 	{#if $store.photos.length > 0}
@@ -52,15 +85,44 @@
 </section>
 
 {#if lightbox}
+	<!-- Keyboard (Esc / arrows) is handled globally via svelte:window above; the
+	     backdrop click only closes. -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
 		class="lightbox"
 		role="dialog"
 		aria-modal="true"
 		aria-label="ფოტოს ნახვა"
 		onclick={() => (lightbox = null)}
-		onkeydown={(e) => e.key === 'Escape' && (lightbox = null)}
 		tabindex="-1"
 	>
+		{#if hasPrev}
+			<button
+				type="button"
+				class="lightbox-arrow prev"
+				aria-label="წინა ფოტო"
+				onclick={(e) => {
+					e.stopPropagation();
+					showPrev();
+				}}
+			>
+				‹
+			</button>
+		{/if}
+		{#if hasNext}
+			<button
+				type="button"
+				class="lightbox-arrow next"
+				aria-label="შემდეგი ფოტო"
+				onclick={(e) => {
+					e.stopPropagation();
+					showNext();
+				}}
+			>
+				›
+			</button>
+		{/if}
+
 		<img
 			src={lightbox.url}
 			alt={lightbox.name ? `${lightbox.name}-ის გაზიარებული ფოტო` : 'ღონისძიების ფოტო'}
@@ -235,5 +297,36 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.lightbox-arrow {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.12);
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, 0.3);
+		font-size: 2rem;
+		line-height: 1;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1;
+	}
+
+	.lightbox-arrow.prev {
+		left: 1rem;
+	}
+
+	.lightbox-arrow.next {
+		right: 1rem;
+	}
+
+	.lightbox-arrow:hover {
+		background: rgba(255, 255, 255, 0.22);
 	}
 </style>
