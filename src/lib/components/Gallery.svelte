@@ -157,17 +157,18 @@
 		width: 100%;
 	}
 
-	/* CSS-columns masonry: newest-first items prepend at the top-left and the
-	   rest flow down without re-laying-out the whole grid. */
+	/* Row-major 3-column grid: newest-first items fill left→right across the top
+	   row, so the most recently added photos always lead the wall. */
 	.masonry {
-		column-count: 3;
-		column-gap: 0.75rem;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		align-items: start;
+		gap: 0.75rem;
 	}
 
 	.tile {
 		position: relative;
-		break-inside: avoid;
-		margin: 0 0 0.75rem;
+		margin: 0;
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 		background: var(--surface);
