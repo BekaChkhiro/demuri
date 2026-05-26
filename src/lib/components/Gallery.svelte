@@ -33,6 +33,76 @@
 		else if (e.key === 'ArrowRight') showNext();
 	}
 
+	// Fetch the current photo as a File for download / native share. Returns
+	// null if the cross-origin fetch is blocked, so callers can fall back.
+	async function fetchPhotoFile(): Promise<File | null> {
+		if (!lightbox) return null;
+		try {
+			const res = await fetch(lightbox.url, { mode: 'cors' });
+			if (!res.ok) return null;
+			const blob = await res.blob();
+			const ext = blob.type.includes('png') ? 'png' : 'jpg';
+			return new File([blob], `bolozari-${lightbox.id}.${ext}`, {
+				type: blob.type || 'image/jpeg'
+			});
+		} catch {
+			return null;
+		}
+	}
+
+	async function downloadPhoto() {
+		if (!lightbox) return;
+		const file = await fetchPhotoFile();
+		if (!file) {
+			// Fallback: open in a new tab so the user can long-press / save.
+			window.open(lightbox.url, '_blank', 'noopener');
+			return;
+		}
+		const url = URL.createObjectURL(file);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = file.name;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
+	}
+
+	async function sharePhoto() {
+		if (!lightbox) return;
+		const nav = navigator as Navigator & {
+			canShare?: (data?: ShareData) => boolean;
+			share?: (data?: ShareData) => Promise<void>;
+		};
+		const file = await fetchPhotoFile();
+
+		// Best path: native share sheet WITH the image — lets the user post to
+		// Instagram (story/post), Facebook, etc. with the actual photo.
+		if (file && nav.share && nav.canShare?.({ files: [file] })) {
+			try {
+				await nav.share({ files: [file], title: 'ბოლოზარი 2026' });
+			} catch {
+				/* user cancelled */
+			}
+			return;
+		}
+		// Fallback 1: native share of the photo link.
+		if (nav.share) {
+			try {
+				await nav.share({ title: 'ბოლოზარი 2026', url: lightbox.url });
+			} catch {
+				/* user cancelled */
+			}
+			return;
+		}
+		// Fallback 2 (desktop): Facebook link share.
+		window.open(
+			`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(lightbox.url)}`,
+			'_blank',
+			'noopener'
+		);
+	}
+
 	// Lock page scroll while the full-screen viewer is open.
 	$effect(() => {
 		if (!browser) return;
@@ -131,6 +201,11 @@
 		{#if lightbox.name}
 			<p class="lightbox-caption">{lightbox.name}</p>
 		{/if}
+
+		<div class="lightbox-actions" role="presentation" onclick={(e) => e.stopPropagation()}>
+			<button type="button" class="action-btn" onclick={downloadPhoto}>⬇ გადმოწერა</button>
+			<button type="button" class="action-btn" onclick={sharePhoto}>↗ გაზიარება</button>
+		</div>
 
 		<!-- Thumbnail strip: stop propagation so picking another photo doesn't
 		     close the lightbox (the backdrop click handler does that). -->
@@ -242,6 +317,28 @@
 		color: #fff;
 		font-size: 0.95rem;
 		text-align: center;
+	}
+
+	.lightbox-actions {
+		display: flex;
+		gap: 0.6rem;
+	}
+
+	.action-btn {
+		padding: 0.55rem 1.2rem;
+		background: var(--accent);
+		color: #000;
+		border: none;
+		border-radius: var(--radius-md);
+		font-size: 0.9rem;
+		font-weight: 700;
+		cursor: pointer;
+		box-shadow: 0 0 14px var(--accent-glow);
+		transition: opacity 0.15s;
+	}
+
+	.action-btn:hover {
+		opacity: 0.85;
 	}
 
 	.lightbox-strip {
