@@ -102,11 +102,41 @@
 <style>
 	.camera-wrap {
 		width: 100%;
-		max-width: 480px;
-		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
+	}
+
+	@media (min-width: 640px) {
+		.camera-wrap {
+			max-width: 480px;
+			margin: 0 auto;
+		}
+	}
+
+	/* Full-bleed on mobile: break out of the page's 1rem horizontal padding */
+	@media (max-width: 639px) {
+		.camera-wrap {
+			margin-inline: -1rem;
+			width: calc(100% + 2rem);
+		}
+
+		.camera-placeholder {
+			border-radius: 0;
+			min-height: min(56svh, 380px);
+		}
+
+		.camera-view {
+			border-radius: 0;
+			aspect-ratio: auto;
+			height: min(60svh, 420px);
+		}
+
+		.btn-capture {
+			width: 76px;
+			height: 76px;
+			font-size: 2.4rem;
+		}
 	}
 
 	.camera-placeholder {
@@ -138,7 +168,7 @@
 
 	.camera-controls {
 		position: absolute;
-		bottom: 1rem;
+		bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 		left: 0;
 		right: 0;
 		display: flex;
