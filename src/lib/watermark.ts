@@ -63,9 +63,9 @@ export async function watermark(blob: Blob, quality = 0.82): Promise<Blob> {
 
 	ctx.drawImage(photo, 0, 0);
 
-	// Logo at ~26% of the photo width, 4% margin from the edges.
+	// Logo at ~32% of the photo width, 4% margin from the edges.
 	const margin = Math.round(w * 0.04);
-	const logoW = Math.round(w * 0.26);
+	const logoW = Math.round(w * 0.32);
 	const logoH = Math.round((logo.naturalHeight / logo.naturalWidth) * logoW);
 	const x = w - logoW - margin;
 	const y = h - logoH - margin;

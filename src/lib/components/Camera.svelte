@@ -2,8 +2,6 @@
 	import { onDestroy } from 'svelte';
 	import { startStream, stopStream, captureFrame, CameraError } from '$lib/camera.js';
 	import type { FacingMode } from '$lib/camera.js';
-	import { compressImage } from '$lib/compress.js';
-	import { watermark } from '$lib/watermark.js';
 
 	let { oncapture }: { oncapture?: (blob: Blob) => void } = $props();
 
@@ -45,9 +43,7 @@
 		capturing = true;
 		try {
 			const raw = await captureFrame(videoEl);
-			const compressed = await compressImage(raw);
-			const blob = await watermark(compressed);
-			oncapture?.(blob);
+			oncapture?.(raw);
 		} catch {
 			captureError = 'ფოტოს გადაღება ვერ მოხერხდა. სცადე თავიდან.';
 		} finally {
