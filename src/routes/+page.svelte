@@ -5,7 +5,6 @@
 	import { createGalleryStore } from '$lib/gallery';
 
 	let name = $state('');
-	let previewUrl: string | null = $state(null);
 	let lastBlob: Blob | null = $state(null);
 	let uploadState: 'idle' | 'uploading' | 'done' | 'error' = $state('idle');
 	let uploadError: string | null = $state(null);
@@ -19,8 +18,6 @@
 	});
 
 	function handleCapture(blob: Blob) {
-		if (previewUrl) URL.revokeObjectURL(previewUrl);
-		previewUrl = URL.createObjectURL(blob);
 		lastBlob = blob;
 		void uploadPhoto(blob);
 	}
@@ -76,13 +73,8 @@
 		<Camera oncapture={handleCapture} />
 	</section>
 
-	{#if previewUrl}
-		<section class="preview-section">
-			<h2>Last capture</h2>
-			<img src={previewUrl} alt="Last capture preview" class="preview-img" />
-			{#if name}
-				<p class="preview-name">by {name}</p>
-			{/if}
+	{#if uploadState !== 'idle'}
+		<section class="status-section">
 			{#if uploadState === 'uploading'}
 				<p class="upload-status uploading" aria-live="polite">Uploading…</p>
 			{:else if uploadState === 'done'}
@@ -160,7 +152,7 @@
 		border-color: var(--accent);
 	}
 
-	.preview-section {
+	.status-section {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
@@ -173,18 +165,6 @@
 		color: var(--text-muted);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-	}
-
-	.preview-img {
-		width: 100%;
-		border-radius: 10px;
-		display: block;
-	}
-
-	.preview-name {
-		margin: 0;
-		font-size: 0.85rem;
-		color: var(--text-dim);
 	}
 
 	.upload-status {
