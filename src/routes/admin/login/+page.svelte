@@ -28,17 +28,6 @@
 </main>
 
 <style>
-	:global(body) {
-		margin: 0;
-		background: #0a0a0a;
-		color: #e0e0e0;
-		font-family:
-			system-ui,
-			-apple-system,
-			sans-serif;
-		min-height: 100dvh;
-	}
-
 	main {
 		max-width: 360px;
 		margin: 0 auto;
@@ -56,23 +45,23 @@
 		margin: 0 0 0.25rem;
 		font-size: 2rem;
 		font-weight: 800;
-		color: #39ff14;
+		color: var(--accent);
 		letter-spacing: -0.02em;
 	}
 
 	.subtitle {
 		margin: 0;
-		color: #666;
+		color: var(--text-dim);
 		font-size: 0.9rem;
 	}
 
 	.error {
 		margin: 0;
 		padding: 0.65rem 0.75rem;
-		background: #1a0000;
-		border: 1px solid #660000;
-		border-radius: 8px;
-		color: #ff6b6b;
+		background: var(--error-bg);
+		border: 1px solid var(--error-border-bright);
+		border-radius: var(--radius-md);
+		color: var(--error-bright);
 		font-size: 0.9rem;
 	}
 
@@ -84,16 +73,16 @@
 
 	label {
 		font-size: 0.85rem;
-		color: #aaa;
+		color: var(--text-secondary);
 	}
 
 	input[type='password'] {
 		width: 100%;
 		padding: 0.65rem 0.75rem;
-		background: #111;
-		border: 1px solid #2a2a2a;
-		border-radius: 8px;
-		color: #e0e0e0;
+		background: var(--surface);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-md);
+		color: var(--text);
 		font-size: 1rem;
 		outline: none;
 		box-sizing: border-box;
@@ -101,18 +90,19 @@
 	}
 
 	input[type='password']:focus {
-		border-color: #39ff14;
+		border-color: var(--accent);
 	}
 
 	button {
 		padding: 0.75rem;
-		background: #39ff14;
-		color: #0a0a0a;
+		background: var(--accent);
+		color: var(--bg);
 		border: none;
-		border-radius: 8px;
+		border-radius: var(--radius-md);
 		font-size: 1rem;
 		font-weight: 700;
 		cursor: pointer;
+		box-shadow: 0 0 16px var(--accent-glow);
 		transition: opacity 0.15s;
 	}
 

@@ -56,10 +56,10 @@
 	.tile {
 		break-inside: avoid;
 		margin: 0 0 0.75rem;
-		border-radius: 10px;
+		border-radius: var(--radius-lg);
 		overflow: hidden;
-		background: #111;
-		border: 1px solid #1c1c1c;
+		background: var(--surface);
+		border: 1px solid var(--border);
 	}
 
 	.tile img {
@@ -71,18 +71,18 @@
 	figcaption {
 		padding: 0.4rem 0.6rem;
 		font-size: 0.8rem;
-		color: #888;
+		color: var(--text-muted);
 	}
 
 	.placeholder {
 		text-align: center;
-		color: #555;
+		color: var(--text-dim);
 		font-size: 0.9rem;
 		padding: 2rem 1rem;
 		margin: 0;
 	}
 
 	.placeholder.error {
-		color: #ff4d4d;
+		color: var(--error);
 	}
 </style>

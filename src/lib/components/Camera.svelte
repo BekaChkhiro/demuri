@@ -116,14 +116,14 @@
 		justify-content: center;
 		gap: 1rem;
 		min-height: 300px;
-		border: 2px dashed #39ff14;
-		border-radius: 12px;
-		background: #0a0a0a;
+		border: 2px dashed var(--accent);
+		border-radius: var(--radius-lg);
+		background: var(--bg);
 	}
 
 	.camera-view {
 		position: relative;
-		border-radius: 12px;
+		border-radius: var(--radius-lg);
 		overflow: hidden;
 		background: #000;
 		aspect-ratio: 4 / 3;
@@ -149,26 +149,27 @@
 
 	.btn-primary {
 		padding: 0.75rem 2rem;
-		background: #39ff14;
+		background: var(--accent);
 		color: #000;
 		border: none;
-		border-radius: 8px;
+		border-radius: var(--radius-md);
 		font-size: 1rem;
 		font-weight: 700;
 		cursor: pointer;
-		transition: background 0.15s;
+		box-shadow: 0 0 16px var(--accent-glow);
+		transition: opacity 0.15s;
 	}
 
 	.btn-primary:hover {
-		background: #2be010;
+		opacity: 0.85;
 	}
 
 	.btn-secondary {
 		padding: 0.6rem 1.5rem;
 		background: transparent;
-		color: #39ff14;
-		border: 1.5px solid #39ff14;
-		border-radius: 8px;
+		color: var(--accent);
+		border: 1.5px solid var(--accent);
+		border-radius: var(--radius-md);
 		font-size: 0.95rem;
 		cursor: pointer;
 	}
@@ -177,7 +178,7 @@
 		width: 64px;
 		height: 64px;
 		border-radius: 50%;
-		background: #39ff14;
+		background: var(--accent);
 		color: #000;
 		border: 3px solid #fff;
 		font-size: 2rem;
@@ -186,6 +187,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		box-shadow: 0 0 16px var(--accent-glow);
 		transition: opacity 0.15s;
 	}
 
@@ -209,13 +211,13 @@
 	}
 
 	.hint {
-		color: #888;
+		color: var(--text-muted);
 		font-size: 0.9rem;
 		margin: 0;
 	}
 
 	.error-text {
-		color: #ff4d4d;
+		color: var(--error);
 		font-size: 0.9rem;
 		text-align: center;
 		margin: 0;
