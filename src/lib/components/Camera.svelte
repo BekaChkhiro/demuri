@@ -249,12 +249,12 @@
 		cursor: pointer;
 	}
 
-	/* Shutter button: white disc with the logo centered, neon-green ring. */
+	/* Shutter button: site-background disc with the logo centered, green ring. */
 	.btn-capture {
 		width: 74px;
 		height: 74px;
 		border-radius: 50%;
-		background: #fff;
+		background: var(--bg);
 		border: 4px solid var(--accent);
 		box-shadow: 0 0 18px var(--accent-glow), 0 0 0 2px rgba(0, 0, 0, 0.25);
 		cursor: pointer;

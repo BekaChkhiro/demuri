@@ -48,6 +48,23 @@
 		else if (e.key === 'ArrowRight') showNext();
 	}
 
+	// Swipe-to-navigate on touch devices.
+	let touchStartX = 0;
+	let touchStartY = 0;
+	function onTouchStart(e: TouchEvent) {
+		touchStartX = e.changedTouches[0].screenX;
+		touchStartY = e.changedTouches[0].screenY;
+	}
+	function onTouchEnd(e: TouchEvent) {
+		const dx = e.changedTouches[0].screenX - touchStartX;
+		const dy = e.changedTouches[0].screenY - touchStartY;
+		// Mostly-horizontal swipe past the threshold: left → next, right → prev.
+		if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+			if (dx < 0) showNext();
+			else showPrev();
+		}
+	}
+
 	// Same-origin endpoint that streams the photo bytes (no R2 CORS issue).
 	const downloadUrl = (id: string) => `/api/download/${id}`;
 
@@ -222,7 +239,8 @@
 			</button>
 		{/if}
 
-		<div class="lightbox-stage">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="lightbox-stage" ontouchstart={onTouchStart} ontouchend={onTouchEnd}>
 			<img
 				src={lightbox.url}
 				alt={lightbox.name ? `${lightbox.name}-ის გაზიარებული ფოტო` : 'ღონისძიების ფოტო'}
