@@ -3,6 +3,8 @@ import { get } from 'svelte/store';
 import {
 	mergePhoto,
 	parsePhotoNew,
+	parsePhotoRemove,
+	removePhoto,
 	createGalleryStore,
 	type GalleryPhoto
 } from './gallery';
@@ -47,6 +49,7 @@ class FakeSocket {
 }
 
 const envelope = (p: GalleryPhoto) => JSON.stringify({ type: 'photo:new', photo: p });
+const removeEnvelope = (id: string) => JSON.stringify({ type: 'photo:remove', id });
 
 describe('mergePhoto', () => {
 	it('prepends a new photo newest-first', () => {
@@ -80,6 +83,32 @@ describe('parsePhotoNew', () => {
 		expect(parsePhotoNew('not json')).toBeNull();
 		expect(parsePhotoNew(JSON.stringify({ type: 'photo:new', photo: { id: 'x' } }))).toBeNull();
 		expect(parsePhotoNew(123)).toBeNull();
+	});
+});
+
+describe('removePhoto', () => {
+	it('removes the photo with the given id', () => {
+		const result = removePhoto([photo('a'), photo('b'), photo('c')], 'b');
+		expect(result.map((p) => p.id)).toEqual(['a', 'c']);
+	});
+
+	it('returns the same array reference when the id is absent (no-op)', () => {
+		const arr = [photo('a'), photo('b')];
+		expect(removePhoto(arr, 'z')).toBe(arr);
+	});
+});
+
+describe('parsePhotoRemove', () => {
+	it('parses a well-formed photo:remove envelope', () => {
+		expect(parsePhotoRemove(removeEnvelope('abc-123'))).toBe('abc-123');
+	});
+
+	it('rejects wrong type, malformed json, and missing/non-string id', () => {
+		expect(parsePhotoRemove(JSON.stringify({ type: 'photo:new', id: 'x' }))).toBeNull();
+		expect(parsePhotoRemove('not json')).toBeNull();
+		expect(parsePhotoRemove(JSON.stringify({ type: 'photo:remove' }))).toBeNull();
+		expect(parsePhotoRemove(JSON.stringify({ type: 'photo:remove', id: 42 }))).toBeNull();
+		expect(parsePhotoRemove(123)).toBeNull();
 	});
 });
 
@@ -153,6 +182,22 @@ describe('createGalleryStore', () => {
 		FakeSocket.instances[0].emitOpen();
 		FakeSocket.instances[0].emitMessage(envelope(photo('live', 3000)));
 		expect(get(store).photos.map((p) => p.id)).toEqual(['live']);
+
+		store.destroy();
+	});
+
+	it('removes a photo on photo:remove and is idempotent for unknown ids', async () => {
+		const store = makeStore(okFetch([photo('a'), photo('b'), photo('c')]));
+		await store.start();
+		const sock = FakeSocket.instances[0];
+		sock.emitOpen();
+
+		sock.emitMessage(removeEnvelope('b'));
+		expect(get(store).photos.map((p) => p.id)).toEqual(['a', 'c']);
+
+		// Unknown id — store unchanged.
+		sock.emitMessage(removeEnvelope('z'));
+		expect(get(store).photos.map((p) => p.id)).toEqual(['a', 'c']);
 
 		store.destroy();
 	});

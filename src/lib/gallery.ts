@@ -63,6 +63,38 @@ export function mergePhoto(photos: GalleryPhoto[], incoming: GalleryPhoto): Gall
 }
 
 /**
+ * Remove a photo by id, returning the same array reference when the id is absent
+ * so the store update is a no-op (identity check).
+ */
+export function removePhoto(photos: GalleryPhoto[], id: string): GalleryPhoto[] {
+	const idx = photos.findIndex((p) => p.id === id);
+	if (idx === -1) return photos;
+	return [...photos.slice(0, idx), ...photos.slice(idx + 1)];
+}
+
+/**
+ * Parse a raw WebSocket frame into a photo id, or null if it isn't a
+ * well-formed `photo:remove` envelope. Defensive on purpose — a malformed frame
+ * must never throw inside the socket handler.
+ */
+export function parsePhotoRemove(data: unknown): string | null {
+	if (typeof data !== 'string') return null;
+
+	let msg: unknown;
+	try {
+		msg = JSON.parse(data);
+	} catch {
+		return null;
+	}
+	if (!msg || typeof msg !== 'object') return null;
+
+	const envelope = msg as { type?: unknown; id?: unknown };
+	if (envelope.type !== 'photo:remove' || typeof envelope.id !== 'string') return null;
+
+	return envelope.id;
+}
+
+/**
  * Parse a raw WebSocket frame into a `GalleryPhoto`, or null if it isn't a
  * well-formed `photo:new` envelope. Defensive on purpose — a malformed frame
  * must never throw inside the socket handler.
@@ -172,7 +204,14 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 		};
 		ws.onmessage = (event: MessageEvent) => {
 			const photo = parsePhotoNew(event.data);
-			if (photo) ingest(photo);
+			if (photo) {
+				ingest(photo);
+				return;
+			}
+			const removedId = parsePhotoRemove(event.data);
+			if (removedId) {
+				update((s) => ({ ...s, photos: removePhoto(s.photos, removedId) }));
+			}
 		};
 		ws.onclose = () => {
 			if (destroyed) return;

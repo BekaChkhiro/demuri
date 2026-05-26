@@ -1,8 +1,23 @@
 import { error, json } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { requireEnv } from '$lib/server/env';
+import { BROADCAST_PATH } from '$lib/server/GalleryRoom';
+import { GALLERY_ROOM_NAME } from '$lib/server/gallery-room-name';
 import { getPhotoById, setPhotoHidden, deletePhotoRow } from '$lib/server/photos';
 import type { RequestHandler } from './$types';
+
+async function broadcastRemove(platform: App.Platform | undefined, id: string): Promise<void> {
+	try {
+		const gallery = requireEnv(platform, 'GALLERY');
+		const stub = gallery.get(gallery.idFromName(GALLERY_ROOM_NAME));
+		await stub.fetch(`https://do${BROADCAST_PATH}`, {
+			method: 'POST',
+			body: JSON.stringify({ type: 'photo:remove', id })
+		} as never);
+	} catch {
+		// Best-effort: no connected clients or DO unavailable.
+	}
+}
 
 /**
  * PATCH /api/admin/photos/:id
@@ -32,6 +47,10 @@ export const PATCH: RequestHandler = async ({ params, request, platform }) => {
 		throw error(404, 'Photo not found');
 	}
 
+	if (hidden) {
+		await broadcastRemove(platform, params.id);
+	}
+
 	return json({ id: params.id, hidden });
 };
 
@@ -54,6 +73,8 @@ export const DELETE: RequestHandler = async ({ params, platform }) => {
 	// Remove from R2 before D1 to avoid orphaned blobs.
 	await bucket.delete(photo.r2_key);
 	await deletePhotoRow(db, params.id);
+
+	await broadcastRemove(platform, params.id);
 
 	return json({ id: params.id, deleted: true });
 };
