@@ -7,6 +7,12 @@ import {
 	type GalleryPhoto
 } from './gallery';
 
+// Flush the microtask queue without touching the fake-timer clock.
+// Ten ticks cover fetch + Response.json() body-parsing chain + extras.
+const flushPromises = async () => {
+	for (let i = 0; i < 10; i++) await Promise.resolve();
+};
+
 function photo(id: string, createdAt = 1000): GalleryPhoto {
 	return { id, url: `https://cdn/${id}.jpg`, name: null, createdAt };
 }
@@ -152,9 +158,11 @@ describe('createGalleryStore', () => {
 	});
 
 	it('reconnects with backoff after the socket closes', async () => {
+		vi.spyOn(Math, 'random').mockReturnValue(0); // disable jitter for deterministic timing
 		const store = makeStore(okFetch([]));
 		await store.start();
 		FakeSocket.instances[0].emitOpen();
+		await flushPromises();
 
 		FakeSocket.instances[0].emitClose();
 		expect(get(store).status).toBe('reconnecting');
@@ -171,6 +179,7 @@ describe('createGalleryStore', () => {
 		await store.start();
 		const sock = FakeSocket.instances[0];
 		sock.emitOpen();
+		await flushPromises();
 
 		store.destroy();
 		expect(sock.closed).toBe(true);
@@ -178,5 +187,99 @@ describe('createGalleryStore', () => {
 		sock.emitClose();
 		await vi.advanceTimersByTimeAsync(200);
 		expect(FakeSocket.instances).toHaveLength(1);
+	});
+
+	it('gap-fills on reconnect: fetches latest photos and dedupes', async () => {
+		const fetchFn = vi
+			.fn()
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ photos: [photo('a', 1000)], nextBefore: null }), {
+					status: 200,
+					headers: { 'content-type': 'application/json' }
+				})
+			)
+			.mockResolvedValue(
+				new Response(
+					JSON.stringify({
+						photos: [photo('new', 2000), photo('a', 1000)],
+						nextBefore: null
+					}),
+					{ status: 200, headers: { 'content-type': 'application/json' } }
+				)
+			) as unknown as typeof fetch;
+
+		const store = makeStore(fetchFn);
+		await store.start();
+		FakeSocket.instances[0].emitOpen();
+		await flushPromises();
+
+		// gap-fill merged 'new' and deduped 'a'
+		expect(get(store).photos.map((p) => p.id)).toEqual(['new', 'a']);
+		store.destroy();
+	});
+
+	it('jitters the backoff delay (delay varies between runs)', async () => {
+		// Two separate stores, one with random=0, one with random=1 — delays differ.
+		vi.spyOn(Math, 'random').mockReturnValue(0);
+		const storeA = makeStore(okFetch([]));
+		await storeA.start();
+		FakeSocket.instances[0].emitClose();
+		// With random=0: delay = 10 + floor(0) = 10 ms — timer fires after 10.
+		await vi.advanceTimersByTimeAsync(10);
+		const sockCountA = FakeSocket.instances.length;
+		storeA.destroy();
+		FakeSocket.instances = [];
+
+		vi.spyOn(Math, 'random').mockReturnValue(0.99);
+		const storeB = makeStore(okFetch([]));
+		await storeB.start();
+		FakeSocket.instances[0].emitClose();
+		// With random=0.99: delay = 10 + floor(0.99 * 2.5) = 10 + 2 = 12 ms — not yet fired after 10.
+		await vi.advanceTimersByTimeAsync(10);
+		const sockCountBAtTen = FakeSocket.instances.length;
+		await vi.advanceTimersByTimeAsync(5);
+		const sockCountBAtFifteen = FakeSocket.instances.length;
+		storeB.destroy();
+
+		expect(sockCountA).toBe(2); // reconnected after 10 ms
+		expect(sockCountBAtTen).toBe(1); // not yet reconnected at 10 ms
+		expect(sockCountBAtFifteen).toBe(2); // reconnected by 15 ms
+	});
+
+	it('pauses reconnect while tab is hidden and resumes on visibilitychange', async () => {
+		const visListeners: Array<() => void> = [];
+		const mockDoc = {
+			visibilityState: 'visible' as DocumentVisibilityState,
+			addEventListener: (_: string, fn: () => void) => visListeners.push(fn),
+			removeEventListener: () => {}
+		};
+		Object.defineProperty(globalThis, 'document', { value: mockDoc, configurable: true });
+
+		try {
+			vi.spyOn(Math, 'random').mockReturnValue(0);
+			const store = makeStore(okFetch([]));
+			await store.start();
+			FakeSocket.instances[0].emitOpen();
+			await flushPromises();
+
+			// Simulate tab going hidden, then socket closes.
+			mockDoc.visibilityState = 'hidden';
+			FakeSocket.instances[0].emitClose();
+			expect(get(store).status).toBe('reconnecting');
+
+			// Even after the normal backoff interval, no new socket while hidden.
+			await vi.advanceTimersByTimeAsync(50);
+			expect(FakeSocket.instances).toHaveLength(1);
+
+			// Tab becomes visible — visibilitychange fires.
+			mockDoc.visibilityState = 'visible';
+			visListeners.forEach((fn) => fn());
+			expect(FakeSocket.instances).toHaveLength(2);
+
+			store.destroy();
+		} finally {
+			// @ts-expect-error restore
+			delete globalThis.document;
+		}
 	});
 });

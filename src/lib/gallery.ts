@@ -128,6 +128,7 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 	let attempts = 0;
 	let destroyed = false;
 	let started = false;
+	let visibilityHandler: (() => void) | null = null;
 
 	function setStatus(status: GalleryStatus, error: string | null = null): void {
 		update((s) => ({ ...s, status, error }));
@@ -135,6 +136,20 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 
 	function ingest(photo: GalleryPhoto): void {
 		update((s) => ({ ...s, photos: mergePhoto(s.photos, photo) }));
+	}
+
+	async function gapFill(): Promise<void> {
+		try {
+			const res = await fetchFn(photosUrl);
+			if (!res.ok) return;
+			const data = (await res.json()) as PhotoListResponse;
+			const photos = Array.isArray(data?.photos) ? data.photos : [];
+			for (const p of photos) {
+				ingest(p);
+			}
+		} catch {
+			// Best-effort only — a gap-fill failure is non-fatal.
+		}
 	}
 
 	function openSocket(): void {
@@ -153,6 +168,7 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 			if (destroyed) return;
 			attempts = 0;
 			setStatus('live');
+			gapFill();
 		};
 		ws.onmessage = (event: MessageEvent) => {
 			const photo = parsePhotoNew(event.data);
@@ -171,7 +187,12 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 	function scheduleReconnect(): void {
 		if (destroyed || reconnectTimer) return;
 		setStatus('reconnecting');
-		const delay = Math.min(reconnectBaseMs * 2 ** attempts, reconnectMaxMs);
+		// Pause while the tab is hidden; visibilitychange will call openSocket() on focus.
+		if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+			return;
+		}
+		const base = Math.min(reconnectBaseMs * 2 ** attempts, reconnectMaxMs);
+		const delay = base + Math.floor(Math.random() * base * 0.25);
 		attempts++;
 		reconnectTimer = setTimeout(() => {
 			reconnectTimer = null;
@@ -195,11 +216,24 @@ export function createGalleryStore(options: GalleryStoreOptions = {}): GallerySt
 			setStatus('error', e instanceof Error ? e.message : 'Failed to load gallery');
 		}
 
+		if (typeof document !== 'undefined') {
+			visibilityHandler = () => {
+				if (document.visibilityState === 'visible' && !destroyed && !socket && !reconnectTimer) {
+					openSocket();
+				}
+			};
+			document.addEventListener('visibilitychange', visibilityHandler);
+		}
+
 		openSocket();
 	}
 
 	function destroy(): void {
 		destroyed = true;
+		if (visibilityHandler && typeof document !== 'undefined') {
+			document.removeEventListener('visibilitychange', visibilityHandler);
+			visibilityHandler = null;
+		}
 		if (reconnectTimer) {
 			clearTimeout(reconnectTimer);
 			reconnectTimer = null;
