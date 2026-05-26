@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { startStream, stopStream, captureFrame, CameraError } from '$lib/camera.js';
 	import type { FacingMode } from '$lib/camera.js';
 
@@ -12,10 +13,22 @@
 	let startError: string | null = $state(null);
 	let captureError: string | null = $state(null);
 	let capturing: boolean = $state(false);
+	let flash: boolean = $state(false);
 
 	$effect(() => {
 		if (videoEl && stream) {
 			videoEl.srcObject = stream;
+		}
+	});
+
+	// Lock page scroll while the full-screen camera is open.
+	$effect(() => {
+		if (!browser) return;
+		if (status === 'active') {
+			document.body.style.overflow = 'hidden';
+			return () => {
+				document.body.style.overflow = '';
+			};
 		}
 	});
 
@@ -37,12 +50,20 @@
 		}
 	}
 
+	function closeCamera() {
+		if (stream) stopStream(stream);
+		stream = null;
+		status = 'idle';
+	}
+
 	async function handleCapture() {
 		if (!videoEl || capturing) return;
 		captureError = null;
 		capturing = true;
 		try {
 			const raw = await captureFrame(videoEl);
+			flash = true;
+			setTimeout(() => (flash = false), 180);
 			oncapture?.(raw);
 		} catch {
 			captureError = 'ფოტოს გადაღება ვერ მოხერხდა. სცადე თავიდან.';
@@ -72,15 +93,18 @@
 		<div class="camera-view">
 			<!-- svelte-ignore a11y_media_has_caption -->
 			<video bind:this={videoEl} autoplay playsinline muted class="camera-video"></video>
+
+			{#if flash}
+				<div class="flash"></div>
+			{/if}
+
+			<button class="btn-close" onclick={closeCamera} aria-label="დახურვა">✕</button>
+
+			{#if captureError}
+				<p class="error-text overlay-error">{captureError}</p>
+			{/if}
+
 			<div class="camera-controls">
-				<button
-					class="btn-capture"
-					onclick={handleCapture}
-					disabled={capturing}
-					aria-label="ფოტოს გადაღება"
-				>
-					{capturing ? '…' : '●'}
-				</button>
 				<button
 					class="btn-toggle"
 					onclick={toggleFacing}
@@ -89,11 +113,15 @@
 				>
 					⇄
 				</button>
+				<button
+					class="btn-capture"
+					onclick={handleCapture}
+					disabled={capturing}
+					aria-label="ფოტოს გადაღება"
+				></button>
+				<span class="control-spacer"></span>
 			</div>
 		</div>
-		{#if captureError}
-			<p class="error-text">{captureError}</p>
-		{/if}
 	{/if}
 </div>
 
@@ -112,25 +140,6 @@
 		}
 	}
 
-	/* On mobile the camera stays within the page's 1rem horizontal padding,
-	   aligning with the name input rather than bleeding to the screen edges. */
-	@media (max-width: 639px) {
-		.camera-placeholder {
-			min-height: min(56svh, 380px);
-		}
-
-		.camera-view {
-			aspect-ratio: auto;
-			height: min(60svh, 420px);
-		}
-
-		.btn-capture {
-			width: 76px;
-			height: 76px;
-			font-size: 2.4rem;
-		}
-	}
-
 	.camera-placeholder {
 		display: flex;
 		flex-direction: column;
@@ -143,12 +152,19 @@
 		background: var(--bg);
 	}
 
+	@media (max-width: 639px) {
+		.camera-placeholder {
+			min-height: min(56svh, 380px);
+		}
+	}
+
+	/* Active camera takes over the whole screen, like a native camera app. */
 	.camera-view {
-		position: relative;
-		border-radius: var(--radius-lg);
-		overflow: hidden;
+		position: fixed;
+		inset: 0;
+		z-index: 200;
 		background: #000;
-		aspect-ratio: 4 / 3;
+		overflow: hidden;
 	}
 
 	.camera-video {
@@ -158,15 +174,50 @@
 		display: block;
 	}
 
-	.camera-controls {
+	.flash {
 		position: absolute;
-		bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-		left: 0;
-		right: 0;
+		inset: 0;
+		background: #fff;
+		animation: flash-fade 0.18s ease-out;
+		pointer-events: none;
+	}
+
+	@keyframes flash-fade {
+		from {
+			opacity: 0.9;
+		}
+		to {
+			opacity: 0;
+		}
+	}
+
+	.btn-close {
+		position: absolute;
+		top: calc(0.9rem + env(safe-area-inset-top, 0px));
+		left: 0.9rem;
+		width: 42px;
+		height: 42px;
+		border-radius: 50%;
+		background: rgba(0, 0, 0, 0.45);
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, 0.3);
+		font-size: 1.1rem;
+		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 1.5rem;
+		backdrop-filter: blur(6px);
+	}
+
+	.camera-controls {
+		position: absolute;
+		bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+		left: 0;
+		right: 0;
+		padding: 0 2rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
 
 	.btn-primary {
@@ -196,21 +247,20 @@
 		cursor: pointer;
 	}
 
+	/* Classic shutter button: white disc inside a ring. */
 	.btn-capture {
-		width: 64px;
-		height: 64px;
+		width: 74px;
+		height: 74px;
 		border-radius: 50%;
-		background: var(--accent);
-		color: #000;
-		border: 3px solid #fff;
-		font-size: 2rem;
-		line-height: 1;
+		background: #fff;
+		border: 4px solid rgba(255, 255, 255, 0.55);
+		box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
 		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 0 16px var(--accent-glow);
-		transition: opacity 0.15s;
+		transition: transform 0.1s;
+	}
+
+	.btn-capture:active {
+		transform: scale(0.92);
 	}
 
 	.btn-capture:disabled {
@@ -219,17 +269,24 @@
 	}
 
 	.btn-toggle {
-		width: 44px;
-		height: 44px;
+		width: 48px;
+		height: 48px;
 		border-radius: 50%;
-		background: rgba(0, 0, 0, 0.6);
+		background: rgba(0, 0, 0, 0.45);
 		color: #fff;
-		border: 1.5px solid rgba(255, 255, 255, 0.4);
-		font-size: 1.25rem;
+		border: 1px solid rgba(255, 255, 255, 0.3);
+		font-size: 1.3rem;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		backdrop-filter: blur(6px);
+	}
+
+	/* Balances the flip button so the shutter stays centered. */
+	.control-spacer {
+		width: 48px;
+		height: 48px;
 	}
 
 	.hint {
@@ -243,5 +300,16 @@
 		font-size: 0.9rem;
 		text-align: center;
 		margin: 0;
+	}
+
+	.overlay-error {
+		position: absolute;
+		bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+		left: 1rem;
+		right: 1rem;
+		color: #fff;
+		background: rgba(200, 0, 0, 0.7);
+		padding: 0.5rem 0.75rem;
+		border-radius: var(--radius-md);
 	}
 </style>

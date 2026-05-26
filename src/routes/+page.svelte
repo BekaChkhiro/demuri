@@ -6,7 +6,6 @@
 	import { compressImage } from '$lib/compress.js';
 	import { watermark } from '$lib/watermark.js';
 
-	let name = $state('');
 	let lastBlob: Blob | null = $state(null);
 	let uploadState: 'idle' | 'uploading' | 'done' | 'error' = $state('idle');
 	let uploadError: string | null = $state(null);
@@ -38,8 +37,6 @@
 		try {
 			const form = new FormData();
 			form.append('photo', blob, 'photo.jpg');
-			const trimmed = name.trim();
-			if (trimmed) form.append('name', trimmed);
 
 			const res = await fetch('/api/upload', { method: 'POST', body: form });
 			if (!res.ok) {
@@ -63,20 +60,6 @@
 		<img src="/demuri-logo.png" alt="ბოლოზარი 2026" class="logo" />
 		<p class="subtitle">გახსენი კამერა და გააზიარე მომენტი.</p>
 	</header>
-
-	<section class="name-section">
-		<label for="name-input">
-			სასურველი ტექსტი <span class="optional">(არასავალდებულო)</span>
-		</label>
-		<input
-			id="name-input"
-			type="text"
-			bind:value={name}
-			placeholder="დატოვე შენი სურვილი..."
-			maxlength="50"
-			autocomplete="off"
-		/>
-	</section>
 
 	<section class="camera-section">
 		<Camera oncapture={handleCapture} />
@@ -126,38 +109,6 @@
 		margin: 0;
 		color: var(--text-dim);
 		font-size: 0.9rem;
-	}
-
-	.name-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-	}
-
-	label {
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-	}
-
-	.optional {
-		color: var(--text-dim);
-	}
-
-	input[type='text'] {
-		width: 100%;
-		padding: 0.65rem 0.75rem;
-		background: var(--surface);
-		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-md);
-		color: var(--text);
-		font-size: 1rem;
-		outline: none;
-		box-sizing: border-box;
-		transition: border-color 0.15s;
-	}
-
-	input[type='text']:focus {
-		border-color: var(--accent);
 	}
 
 	.status-section {
