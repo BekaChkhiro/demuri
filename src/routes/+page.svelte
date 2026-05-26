@@ -1,8 +1,19 @@
 <script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
 	import Camera from '$lib/components/Camera.svelte';
+	import Gallery from '$lib/components/Gallery.svelte';
+	import { createGalleryStore } from '$lib/gallery';
 
 	let name = $state('');
 	let previewUrl: string | null = $state(null);
+
+	const gallery = createGalleryStore();
+	onMount(() => {
+		gallery.start();
+	});
+	onDestroy(() => {
+		gallery.destroy();
+	});
 
 	function handleCapture(blob: Blob) {
 		if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -44,6 +55,11 @@
 			{/if}
 		</section>
 	{/if}
+
+	<section class="gallery-section">
+		<h2>Live wall</h2>
+		<Gallery store={gallery} />
+	</section>
 </main>
 
 <style>
@@ -142,5 +158,11 @@
 		margin: 0;
 		font-size: 0.85rem;
 		color: #555;
+	}
+
+	.gallery-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
 	}
 </style>
