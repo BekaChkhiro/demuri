@@ -3,6 +3,17 @@ compatibility_date = "2024-11-01"
 # Required by SvelteKit's Cloudflare adapter (uses node:async_hooks et al.)
 compatibility_flags = ["nodejs_compat"]
 
+# Worker entry-point + static assets produced by @sveltejs/adapter-cloudflare.
+# The adapter writes _worker.js plus hashed assets into .svelte-kit/cloudflare;
+# its generated .assetsignore keeps _worker.js(.map) out of the asset bundle.
+# main points at worker-entry.js, a wrapper that re-exports the adapter handler
+# plus the GalleryRoom Durable Object (the adapter does not export DOs itself).
+main = "worker-entry.js"
+
+[assets]
+directory = ".svelte-kit/cloudflare"
+binding = "ASSETS"
+
 # R2 bucket for uploaded photo blobs (T1.2)
 [[r2_buckets]]
 binding = "PHOTOS_BUCKET"
