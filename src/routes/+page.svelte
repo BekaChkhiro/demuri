@@ -70,7 +70,7 @@
 			{#if uploadState === 'uploading'}
 				<p class="upload-status uploading" aria-live="polite">იტვირთება…</p>
 			{:else if uploadState === 'done'}
-				<p class="upload-status done" aria-live="polite">გაზიარდა კედელზე ✓</p>
+				<p class="upload-status done" aria-live="polite">დაემატა მომენტი ✓</p>
 			{:else if uploadState === 'error'}
 				<p class="upload-status error" aria-live="assertive">{uploadError}</p>
 				<button class="btn-retry" onclick={retryUpload}>თავიდან ცდა</button>
@@ -79,7 +79,7 @@
 	{/if}
 
 	<section class="gallery-section">
-		<h2>უახლესი მომენტები</h2>
+		<h2>მომენტები</h2>
 		<Gallery store={gallery} />
 	</section>
 </main>
