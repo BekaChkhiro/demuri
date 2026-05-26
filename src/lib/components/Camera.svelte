@@ -247,14 +247,14 @@
 		cursor: pointer;
 	}
 
-	/* Classic shutter button: white disc inside a ring. */
+	/* Shutter button: neon-green disc inside a white ring. */
 	.btn-capture {
 		width: 74px;
 		height: 74px;
 		border-radius: 50%;
-		background: #fff;
-		border: 4px solid rgba(255, 255, 255, 0.55);
-		box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+		background: var(--accent);
+		border: 4px solid rgba(255, 255, 255, 0.85);
+		box-shadow: 0 0 18px var(--accent-glow), 0 0 0 2px rgba(0, 0, 0, 0.25);
 		cursor: pointer;
 		transition: transform 0.1s;
 	}
