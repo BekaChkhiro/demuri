@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local Wrangler dev server (never commit .dev.vars).
+ADMIN_PASSWORD="dev-admin-password"
+R2_PUBLIC_BASE_URL="https://pub-56b924963d704c6c8db69d15dc4caf78.r2.dev"

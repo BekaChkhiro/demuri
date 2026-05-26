@@ -25,3 +25,8 @@ class_name = "GalleryRoom"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["GalleryRoom"]
+
+# Non-secret production variables.
+# ADMIN_PASSWORD is a secret — set via: wrangler secret put ADMIN_PASSWORD
+[vars]
+R2_PUBLIC_BASE_URL = "https://pub-56b924963d704c6c8db69d15dc4caf78.r2.dev"
