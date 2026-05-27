@@ -47,7 +47,14 @@
 		} catch (e) {
 			stream = null;
 			status = 'error';
-			startError = e instanceof CameraError ? e.message : 'კამერის გაშვება ვერ მოხერხდა.';
+			if (e instanceof CameraError && e.kind === 'permission-denied') {
+				startError =
+					'კამერაზე წვდომა უარყოფილია. ბრაუზერის მისამართის ზოლში კამერის/🔒 აიქონზე დააჭირე, დაუშვი კამერა და სცადე თავიდან.';
+			} else if (e instanceof CameraError && e.kind === 'no-camera') {
+				startError = 'კამერა ვერ მოიძებნა ამ მოწყობილობაზე.';
+			} else {
+				startError = 'კამერის გაშვება ვერ მოხერხდა. სცადე თავიდან.';
+			}
 		}
 	}
 
