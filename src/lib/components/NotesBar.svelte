@@ -157,8 +157,15 @@
 		display: flex;
 		gap: 0.85rem;
 		overflow-x: auto;
+		/* min-width:0 + max-width keep the row scrolling inside the page instead
+		   of widening it once many notes accumulate. */
+		min-width: 0;
+		max-width: 100%;
 		padding: 0.25rem 0.1rem 0.5rem;
 		scrollbar-width: none;
+		scroll-snap-type: x proximity;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior-x: contain;
 	}
 	.notes::-webkit-scrollbar {
 		display: none;
@@ -171,6 +178,7 @@
 		align-items: center;
 		gap: 0.35rem;
 		width: 74px;
+		scroll-snap-align: start;
 		background: none;
 		border: none;
 		padding: 0;

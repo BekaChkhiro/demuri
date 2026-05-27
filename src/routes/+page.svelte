@@ -206,6 +206,8 @@
 
 	.notes-section {
 		width: 100%;
+		/* Allow the inner carousel to scroll instead of stretching this flex item. */
+		min-width: 0;
 	}
 
 	.status-section {
