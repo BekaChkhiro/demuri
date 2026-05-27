@@ -17,6 +17,8 @@ body {
 	min-height: 100dvh;
 	/* push content above the home indicator on notched phones */
 	padding-bottom: env(safe-area-inset-bottom, 0px);
+	/* Disable the mobile double-tap-to-zoom gesture (pinch-zoom still works). */
+	touch-action: manipulation;
 }
 
 @media (prefers-reduced-motion: reduce) {
