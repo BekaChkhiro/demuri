@@ -12,12 +12,13 @@ export class CameraError extends Error {
 }
 
 export async function startStream(facingMode: FacingMode): Promise<MediaStream> {
-	// Ask for the highest practical resolution; `ideal` lets the browser fall
-	// back gracefully to whatever the camera actually supports.
+	// Ask for a high-resolution 4:3 stream — the phone sensor's native photo
+	// aspect, so shots match the earlier 4:3 framing instead of a tall 16:9.
+	// `ideal` lets the browser fall back to whatever the camera supports.
 	const constraints: MediaStreamConstraints = {
 		video: {
 			facingMode,
-			width: { ideal: 3840 },
+			width: { ideal: 2880 },
 			height: { ideal: 2160 }
 		}
 	};
