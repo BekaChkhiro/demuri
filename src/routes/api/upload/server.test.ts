@@ -66,8 +66,8 @@ describe('POST /api/upload', () => {
 		).rejects.toMatchObject({ status: 400 });
 	});
 
-	it('returns 400 when the file exceeds the 8 MB limit', async () => {
-		const file = new File([new Uint8Array(9 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' });
+	it('returns 400 when the file exceeds the 12 MB limit', async () => {
+		const file = new File([new Uint8Array(13 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' });
 		await expect(
 			POST({ request: makeRequest({ photo: file }), platform: makePlatform().platform } as never)
 		).rejects.toMatchObject({ status: 400 });

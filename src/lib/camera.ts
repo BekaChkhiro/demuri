@@ -12,8 +12,17 @@ export class CameraError extends Error {
 }
 
 export async function startStream(facingMode: FacingMode): Promise<MediaStream> {
+	// Ask for the highest practical resolution; `ideal` lets the browser fall
+	// back gracefully to whatever the camera actually supports.
+	const constraints: MediaStreamConstraints = {
+		video: {
+			facingMode,
+			width: { ideal: 3840 },
+			height: { ideal: 2160 }
+		}
+	};
 	try {
-		return await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+		return await navigator.mediaDevices.getUserMedia(constraints);
 	} catch (e) {
 		if (e instanceof DOMException) {
 			if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {

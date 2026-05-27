@@ -6,8 +6,8 @@ import { BROADCAST_PATH } from '$lib/server/GalleryRoom';
 import { insertPhoto, publicUrl, sanitizeName, type PhotoResponse } from '$lib/server/photos';
 import type { RequestHandler } from './$types';
 
-/** Maximum accepted upload size — matches the client-side compression cap. */
-const MAX_BYTES = 8 * 1024 * 1024;
+/** Maximum accepted upload size — headroom for high-quality (2560–3000px) JPEGs. */
+const MAX_BYTES = 12 * 1024 * 1024;
 
 /**
  * POST /api/upload
@@ -43,7 +43,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	}
 
 	if (photo.size > MAX_BYTES) {
-		throw error(400, 'ატვირთული ფაილი აჭარბებს 8MB ლიმიტს');
+		throw error(400, 'ატვირთული ფაილი აჭარბებს 12MB ლიმიტს');
 	}
 
 	const name = sanitizeName(form.get('name'));

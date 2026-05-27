@@ -12,8 +12,8 @@ import {
 } from '$lib/server/notes';
 import type { RequestHandler } from './$types';
 
-/** Matches the client-side compression cap. */
-const MAX_BYTES = 8 * 1024 * 1024;
+/** Headroom for high-quality JPEGs. */
+const MAX_BYTES = 12 * 1024 * 1024;
 
 /** GET /api/notes — latest notes, newest-first. */
 export const GET: RequestHandler = async ({ platform }) => {
@@ -50,7 +50,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		throw error(400, 'ატვირთული ფაილი ცარიელია');
 	}
 	if (photo.size > MAX_BYTES) {
-		throw error(400, 'ატვირთული ფაილი აჭარბებს 8MB ლიმიტს');
+		throw error(400, 'ატვირთული ფაილი აჭარბებს 12MB ლიმიტს');
 	}
 
 	const text = sanitizeNoteText(form.get('text'));
