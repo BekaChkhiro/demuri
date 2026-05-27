@@ -177,8 +177,9 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 1rem;
-		min-height: 300px;
+		gap: 0.85rem;
+		min-height: 160px;
+		padding: 1.25rem 1rem;
 		border: 2px dashed var(--accent);
 		border-radius: var(--radius-lg);
 		background: var(--bg);
@@ -186,7 +187,7 @@
 
 	@media (max-width: 639px) {
 		.camera-placeholder {
-			min-height: min(56svh, 380px);
+			min-height: 180px;
 		}
 	}
 

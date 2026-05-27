@@ -1,6 +1,8 @@
 import { error, json } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { requireEnv } from '$lib/server/env';
+import { GALLERY_ROOM_NAME } from '$lib/server/gallery-room-name';
+import { BROADCAST_PATH } from '$lib/server/GalleryRoom';
 import {
 	insertNote,
 	listNotes,
@@ -67,5 +69,18 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	await insertNote(db, row);
 
 	const body: NoteResponse = toNoteResponse(row, publicBase);
+
+	// Notify live clients — broadcast failure must not fail the request.
+	try {
+		const gallery = requireEnv(platform, 'GALLERY');
+		const stub = gallery.get(gallery.idFromName(GALLERY_ROOM_NAME));
+		await stub.fetch(`https://do${BROADCAST_PATH}`, {
+			method: 'POST',
+			body: JSON.stringify({ type: 'note:new', note: body })
+		} as never);
+	} catch {
+		// Best-effort: no connected clients or DO unavailable.
+	}
+
 	return json(body, { status: 201 });
 };

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 
 	interface Note {
@@ -13,6 +13,10 @@
 
 	let notes = $state<Note[]>([]);
 	let viewer = $state<Note | null>(null);
+
+	let socket: WebSocket | null = null;
+	let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+	let destroyed = false;
 
 	async function load() {
 		try {
@@ -30,7 +34,80 @@
 		void load();
 	}
 
-	onMount(load);
+	/** Prepend a note from a live `note:new` frame, de-duplicated by id. */
+	function ingest(note: Note) {
+		if (notes.some((n) => n.id === note.id)) return;
+		notes = [note, ...notes];
+	}
+
+	function parseNoteNew(data: unknown): Note | null {
+		if (typeof data !== 'string') return null;
+		let msg: unknown;
+		try {
+			msg = JSON.parse(data);
+		} catch {
+			return null;
+		}
+		if (!msg || typeof msg !== 'object') return null;
+		const env = msg as { type?: unknown; note?: unknown };
+		if (env.type !== 'note:new' || !env.note || typeof env.note !== 'object') return null;
+		const n = env.note as Record<string, unknown>;
+		if (typeof n.id !== 'string' || typeof n.url !== 'string' || typeof n.text !== 'string') {
+			return null;
+		}
+		return {
+			id: n.id,
+			url: n.url,
+			text: n.text,
+			createdAt: typeof n.createdAt === 'number' ? n.createdAt : Date.now()
+		};
+	}
+
+	function connect() {
+		if (destroyed) return;
+		const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+		try {
+			socket = new WebSocket(`${proto}//${location.host}/api/ws`);
+		} catch {
+			scheduleReconnect();
+			return;
+		}
+		socket.onmessage = (e) => {
+			const note = parseNoteNew(e.data);
+			if (note) ingest(note);
+		};
+		socket.onclose = () => {
+			socket = null;
+			scheduleReconnect();
+		};
+	}
+
+	function scheduleReconnect() {
+		if (destroyed || reconnectTimer) return;
+		reconnectTimer = setTimeout(() => {
+			reconnectTimer = null;
+			connect();
+		}, 3000);
+	}
+
+	onMount(() => {
+		void load();
+		connect();
+	});
+
+	onDestroy(() => {
+		destroyed = true;
+		if (reconnectTimer) clearTimeout(reconnectTimer);
+		if (socket) {
+			socket.onmessage = null;
+			socket.onclose = null;
+			try {
+				socket.close();
+			} catch {
+				// already closing
+			}
+		}
+	});
 
 	$effect(() => {
 		if (!browser) return;
