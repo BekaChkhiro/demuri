@@ -112,7 +112,14 @@
 	{:else}
 		<div class="camera-view">
 			<!-- svelte-ignore a11y_media_has_caption -->
-			<video bind:this={videoEl} autoplay playsinline muted class="camera-video"></video>
+			<video
+				bind:this={videoEl}
+				autoplay
+				playsinline
+				muted
+				class="camera-video"
+				class:unmirror={facingMode === 'user'}
+			></video>
 
 			{#if flash}
 				<div class="flash"></div>
@@ -205,6 +212,12 @@
 		height: 100%;
 		object-fit: cover;
 		display: block;
+	}
+
+	/* Browsers auto-mirror the front-camera preview; the captured frame is not
+	   mirrored, so counter the preview mirror to keep what-you-see = what-you-get. */
+	.camera-video.unmirror {
+		transform: scaleX(-1);
 	}
 
 	.flash {
