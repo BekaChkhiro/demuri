@@ -14,6 +14,7 @@
 	let captureError: string | null = $state(null);
 	let capturing: boolean = $state(false);
 	let flash: boolean = $state(false);
+	let captured: boolean = $state(false);
 
 	$effect(() => {
 		if (videoEl && stream) {
@@ -65,6 +66,13 @@
 			flash = true;
 			setTimeout(() => (flash = false), 180);
 			oncapture?.(raw);
+			// Confirm with a checkmark, then close the camera so the user sees the
+			// upload land on the wall.
+			captured = true;
+			setTimeout(() => {
+				captured = false;
+				closeCamera();
+			}, 850);
 		} catch {
 			captureError = 'ფოტოს გადაღება ვერ მოხერხდა. სცადე თავიდან.';
 		} finally {
@@ -96,6 +104,16 @@
 
 			{#if flash}
 				<div class="flash"></div>
+			{/if}
+
+			{#if captured}
+				<div class="capture-confirm">
+					<div class="check-circle">
+						<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="m5 13 4 4L19 7" />
+						</svg>
+					</div>
+				</div>
 			{/if}
 
 			<button class="btn-close" onclick={closeCamera} aria-label="დახურვა">✕</button>
@@ -189,6 +207,55 @@
 			opacity: 0.9;
 		}
 		to {
+			opacity: 0;
+		}
+	}
+
+	.capture-confirm {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0, 0, 0, 0.35);
+		pointer-events: none;
+		animation: confirm-bg 0.85s ease-out forwards;
+	}
+
+	.check-circle {
+		width: 96px;
+		height: 96px;
+		border-radius: 50%;
+		background: var(--accent);
+		color: #000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 0 28px var(--accent-glow);
+		animation: check-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+	}
+
+	@keyframes check-pop {
+		0% {
+			transform: scale(0.3);
+			opacity: 0;
+		}
+		60% {
+			transform: scale(1.1);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
+
+	@keyframes confirm-bg {
+		0%,
+		70% {
+			opacity: 1;
+		}
+		100% {
 			opacity: 0;
 		}
 	}
