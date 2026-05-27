@@ -47,7 +47,7 @@ export function captureFrame(video: HTMLVideoElement): Promise<Blob> {
 				else reject(new Error('canvas.toBlob returned null.'));
 			},
 			'image/jpeg',
-			0.9
+			0.95
 		);
 	});
 }

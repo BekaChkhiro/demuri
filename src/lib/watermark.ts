@@ -42,7 +42,7 @@ function loadBlob(blob: Blob): Promise<HTMLImageElement> {
  * areas. Best-effort: any failure returns the original blob untouched so a
  * watermark hiccup never blocks the upload.
  */
-export async function watermark(blob: Blob, quality = 0.92): Promise<Blob> {
+export async function watermark(blob: Blob, maxEdge = 2560, quality = 0.92): Promise<Blob> {
 	let photo: HTMLImageElement;
 	let logo: HTMLImageElement;
 	try {
@@ -51,9 +51,17 @@ export async function watermark(blob: Blob, quality = 0.92): Promise<Blob> {
 		return blob;
 	}
 
-	const w = photo.naturalWidth;
-	const h = photo.naturalHeight;
-	if (!w || !h) return blob;
+	const sw = photo.naturalWidth;
+	const sh = photo.naturalHeight;
+	if (!sw || !sh) return blob;
+
+	// Downscale and watermark in a single canvas pass so the photo is only
+	// re-encoded once (avoids the extra JPEG round-trip a separate compress
+	// step would add, which is the main source of quality loss).
+	const longest = Math.max(sw, sh);
+	const scale = longest > maxEdge ? maxEdge / longest : 1;
+	const w = Math.round(sw * scale);
+	const h = Math.round(sh * scale);
 
 	const canvas = document.createElement('canvas');
 	canvas.width = w;
@@ -61,7 +69,9 @@ export async function watermark(blob: Blob, quality = 0.92): Promise<Blob> {
 	const ctx = canvas.getContext('2d');
 	if (!ctx) return blob;
 
-	ctx.drawImage(photo, 0, 0);
+	ctx.imageSmoothingEnabled = true;
+	ctx.imageSmoothingQuality = 'high';
+	ctx.drawImage(photo, 0, 0, w, h);
 
 	// Logo at ~32% of the photo width, 4% margin from the edges.
 	const margin = Math.round(w * 0.04);

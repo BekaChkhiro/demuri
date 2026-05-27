@@ -84,10 +84,9 @@
 		}
 	}
 
-	// Downscale, stamp the logo, then auto-upload to R2.
+	// Downscale + stamp the logo in a single pass, then auto-upload to R2.
 	async function prepareAndUpload(raw: Blob) {
-		const compressed = await compressImage(raw);
-		const stamped = await watermark(compressed);
+		const stamped = await watermark(raw);
 		await uploadPhoto(stamped);
 	}
 
