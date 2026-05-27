@@ -37,6 +37,11 @@
 		if (stream) stopStream(stream);
 	});
 
+	// Let the page open the camera programmatically (e.g. for the note flow).
+	export function open() {
+		void startCamera();
+	}
+
 	async function startCamera() {
 		startError = null;
 		captureError = null;
